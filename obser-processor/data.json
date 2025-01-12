@@ -1,0 +1,79 @@
+[
+    {
+        "traceId": "b8b73a48195c106f",
+        "parentId": "144d90ba192ae111",
+        "id": "65dc9d0bffad8802",
+        "kind": "SERVER",
+        "name": "get /api",
+        "timestamp": 1735460410001381,
+        "duration": 1505453,
+        "localEndpoint": {
+            "serviceName": "backend",
+            "ipv4": "192.168.0.102"
+        },
+        "tags": {
+            "http.path": "/api",
+            "http.status_code": "200"
+        },
+        "shared": true
+    },
+    {
+        "traceId": "b8b73a48195c106f",
+        "parentId": "144d90ba192ae111",
+        "id": "65dc9d0bffad8802",
+        "kind": "CLIENT",
+        "name": "get",
+        "timestamp": 1735460409964384,
+        "duration": 1543304,
+        "localEndpoint": {
+            "serviceName": "frontend"
+        },
+        "tags": {
+            "http.path": "/api",
+            "http.status_code": "200"
+        }
+    },
+    {
+        "traceId": "b8b73a48195c106f",
+        "parentId": "b8b73a48195c106f",
+        "id": "144d90ba192ae111",
+        "name": "pay-me",
+        "timestamp": 1735460409962774,
+        "duration": 1545586,
+        "localEndpoint": {
+            "serviceName": "frontend"
+        }
+    },
+    {
+        "traceId": "b8b73a48195c106f",
+        "id": "b8b73a48195c106f",
+        "kind": "SERVER",
+        "name": "get /",
+        "timestamp": 1735460409962099,
+        "duration": 1546389,
+        "localEndpoint": {
+            "serviceName": "frontend",
+            "ipv4": "192.168.0.102"
+        },
+        "tags": {
+            "http.path": "/",
+            "http.status_code": "200"
+        },
+        "shared": true
+    },
+    {
+        "traceId": "b8b73a48195c106f",
+        "id": "b8b73a48195c106f",
+        "kind": "CLIENT",
+        "name": "get",
+        "timestamp": 1735460409931400,
+        "duration": 1579300,
+        "localEndpoint": {
+            "serviceName": "browser"
+        },
+        "tags": {
+            "http.path": "/",
+            "http.status_code": "200"
+        }
+    }
+]
