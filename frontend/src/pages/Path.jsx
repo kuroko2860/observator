@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { useParams } from "react-router-dom";
+import { CustomDateTimeRangePicker } from "../components/CustomTimePicker";
 
 const GraphVisualizer = () => {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
@@ -21,21 +22,6 @@ const GraphVisualizer = () => {
         }));
 
         setGraphData({ nodes, links });
-        // const dagData = {
-        //   nodes: [
-        //     { id: "A", label: "Node A" },
-        //     { id: "B", label: "Node B" },
-        //     { id: "C", label: "Node C" },
-        //     { id: "D", label: "Node D" },
-        //   ],
-        //   links: [
-        //     { source: "A", target: "B" },
-        //     { source: "A", target: "C" },
-        //     { source: "B", target: "D" },
-        //     { source: "C", target: "D" },
-        //   ],
-        // };
-        // setGraphData(dagData);
       } catch (error) {
         console.error("Error fetching graph data:", error);
       }
@@ -43,27 +29,36 @@ const GraphVisualizer = () => {
 
     fetchGraphData();
   }, []);
-  const fgRef = useRef();
-
-  useEffect(() => {
-    if (fgRef.current) {
-      fgRef.current.d3Force("charge").strength(-300); // Adjust repulsion strength
-    }
-  }, []);
 
   return (
-    <div style={{ width: "100%", height: "100vh" }}>
+    <div style={{ width: "600px", height: "100vh" }}>
+      <CustomDateTimeRangePicker />
       <ForceGraph2D
-        ref={fgRef}
         graphData={graphData}
         nodeLabel="label"
-        nodeAutoColorBy="id"
-        linkDirectionalArrowLength={6}
-        linkDirectionalArrowRelPos={1} // Position arrow at the end
+        nodeAutoColorBy="color"
+        nodeCanvasObject={(node, ctx, globalScale) => {
+          const label = node.label || node.id; // Use label if available, fallback to id
+          const fontSize = 12 / globalScale; // Adjust font size based on zoom level
+          ctx.font = `${fontSize}px Sans-Serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+
+          // Draw node circle
+          ctx.fillStyle = node.color;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false); // Node radius is 5
+          ctx.fill();
+
+          // Draw text in the center of the node
+          ctx.fillStyle = "black"; // Text color
+          ctx.fillText(label, node.x, node.y); // Text position at node's center
+        }}
+        linkDirectionalArrowLength={5}
+        linkDirectionalArrowRelPos={1}
         linkWidth={2}
-        linkDirectionalParticles={1}
-        linkDirectionalParticleSpeed={0.005}
-        onNodeClick={(node) => alert(`Clicked node: ${node.label}`)}
+        linkColor={() => "#aaa"}
+        onNodeClick={(node) => alert(`Clicked node: ${node.label || node.id}`)}
         onLinkClick={(link) =>
           alert(`Clicked link: ${link.source.id} -> ${link.target.id}`)
         }
