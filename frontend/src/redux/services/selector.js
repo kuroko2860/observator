@@ -1,0 +1,1 @@
+export const getAllServices = (state) => state.services.services

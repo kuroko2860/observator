@@ -14,7 +14,6 @@ func NewHandler(service *service.Service) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(v1 *echo.Group) {
-	v1.GET("/paths/:id", h.getPathById)
 	v1.GET("/traces", h.getAllTracesOfPath)
 
 }
