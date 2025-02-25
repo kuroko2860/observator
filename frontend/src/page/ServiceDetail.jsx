@@ -45,20 +45,34 @@ const ServiceDetail = () => {
     sortedData = data.http_api.sort((a, b) => b.count - a.count);
   }
   return (
-    <Box>
-      <Typography variant="h4">Service Detail: {service_name}</Typography>
+    <Box
+      className="flex flex-col items-center p-4"
+      sx={{
+        "& .MuiPaper-root": {
+          width: "100%",
+          maxWidth: "1200px",
+        },
+      }}
+    >
+      <Typography variant="h4" className="text-3xl font-bold mb-4">
+        Service Detail: {service_name}
+      </Typography>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <TimeRangeInput />
+          <TimeRangeInput className="mb-4" />
           <SubmitButtons />
         </form>
       </FormProvider>
-      {loading && <CircularProgress />}
-      {error && <p>{error}</p>}
+      {loading && <CircularProgress className="mx-auto" />}
+      {error && <p className="text-red-500">{error}</p>}
       {data && (
-        <CustomContainer>
+        <CustomContainer className="mt-4">
           {Object.keys(data.operations).length > 0 ? (
-            <BarChartCard title={"Operations"} caption={"Operation call count"}>
+            <BarChartCard
+              title="Operations"
+              caption="Operation call count"
+              className="mb-4"
+            >
               <BarChart
                 layout="horizontal"
                 grid={{ vertical: true }}
@@ -85,12 +99,18 @@ const ServiceDetail = () => {
               />
             </BarChartCard>
           ) : (
-            <Typography variant="h6">No operation found</Typography>
+            <Typography variant="h6" className="text-center">
+              No operation found
+            </Typography>
           )}
           {sortedData ? (
-            <CustomContainer title={"HTTP API"}>
+            <CustomContainer title="HTTP API" className="mt-4">
               <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <Table
+                  sx={{ minWidth: 650 }}
+                  aria-label="simple table"
+                  className="table-auto"
+                >
                   <TableHead>
                     <TableRow>
                       <TableCell>STT</TableCell>
@@ -133,10 +153,13 @@ const ServiceDetail = () => {
                   setPg(0);
                 }}
                 rowsPerPageOptions={[5, 10, 15]}
+                className="mt-4"
               />
             </CustomContainer>
           ) : (
-            <Typography variant="h6">No HTTP API found</Typography>
+            <Typography variant="h6" className="text-center">
+              No HTTP API found
+            </Typography>
           )}
         </CustomContainer>
       )}

@@ -7,7 +7,7 @@ export const fetchAllServices = createAsyncThunk("/services", async () => {
 });
 export const servicesSlice = createSlice({
   name: "services",
-  unitialState: {
+  initialState: {
     services: [],
     status: "idle",
     error: null,

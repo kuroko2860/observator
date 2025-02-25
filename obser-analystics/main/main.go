@@ -14,8 +14,16 @@ import (
 	"kuroko.com/analystics/internal/service"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+
+	echoSwagger "github.com/swaggo/echo-swagger"
+	_ "kuroko.com/analystics/docs"
 )
 
+// @title			Todo Application
+// @description	This is a todo list management application
+// @version		1.0
+// @host			localhost:8585
+// @BasePath		/api
 func main() {
 	client, err := qmgo.NewClient(context.Background(), &qmgo.Config{Uri: config.MONGO_URI})
 	if err != nil {
@@ -62,18 +70,20 @@ func main() {
 		}
 	}()
 
+	go func() {
+		if <-stopChan {
+			fmt.Println("Exiting the application...")
+			os.Exit(0)
+		}
+	}()
 	r := router.New()
 	v1 := r.Group("/api")
 	apiHandler := handler.NewHandler(s)
 	apiHandler.RegisterRoutes(v1)
+	r.GET("/swagger/*", echoSwagger.WrapHandler)
 	r.Logger.Fatal(r.Start("127.0.0.1:8585"))
 
 	// Main process logic
 	fmt.Println("Application is running. Press Ctrl+C to exit.")
-
-	if <-stopChan {
-		fmt.Println("Exiting the application...")
-		return
-	}
 
 }

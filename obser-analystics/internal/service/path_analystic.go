@@ -2,58 +2,57 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strconv"
 
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"go.mongodb.org/mongo-driver/bson"
 	"kuroko.com/analystics/internal/model"
-	"kuroko.com/analystics/internal/model/dto"
 )
 
 func (s *Service) GetAllPathFromHop(ctx context.Context, callerSvc, callerOp, calledSvc, calledOp string) ([]*model.Path, error) {
-	var results []*model.Hop
-	filter := bson.M{}
-	if len(calledOp) > 0 {
-		filter["called_operation_name"] = calledOp
-	}
-	if len(calledSvc) > 0 {
-		filter["called_service_name"] = calledSvc
-	}
-	if len(callerOp) > 0 {
-		filter["caller_operation_name"] = callerOp
-	}
-	if len(callerSvc) > 0 {
-		filter["caller_service_name"] = callerSvc
-	}
-	err := hopCollection.Find(ctx, filter).All(&results)
+	var res []*model.Path
+	session := s.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	_, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		result, err := tx.Run(ctx, `
+			match path=(callerOperation:Operation {name:$callerOp, serviceName:$callerSvc})-[r:CALLS*]->(calledOperation:Operation {name:$calledOp, serviceName:$calledSvc})
+			with path, relationships(path) as rels
+			unwind rels as rel
+			with distinct rel.pathID as pathId
+			match (o:Operation)-[rel:calls]->(target:Operation)
+			where rel.pathID = pathId
+			return o, target, pathId
+		`, map[string]interface{}{
+			"callerSvc": callerSvc,
+			"callerOp":  callerOp,
+			"calledSvc": calledSvc,
+			"calledOp":  calledOp,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for result.Next(ctx) {
+			if record, ok := result.Record().Get("pathId"); ok {
+				fmt.Println(record)
+			}
+		}
+		return nil, nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	if len(results) == 0 {
-		return []*model.Path{}, nil
-	}
-	var pathIdArr []uint32
-	for _, res := range results {
-		pathIdArr = append(pathIdArr, res.PathId)
-	}
-	var paths []*model.Path
-	err = pathCollection.Find(ctx, bson.M{
-		"id": bson.M{
-			"$in": pathIdArr,
-		},
-	}).All(&paths)
-	if err != nil {
-		return nil, err
-	}
-	return paths, nil
+	return res, nil
 }
 
-func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, _to, unit string) (*dto.PathDetail, error) {
+func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, _to, unit string) (*model.PathDetail, error) {
 	pathId, _ := strconv.ParseInt(_pathId, 10, 32)
 	from, to := ParseFromToStringToInt(_from, _to)
 	interval := ParseUnitToInterval(unit)
 
-	res := &dto.PathDetail{}
+	res := &model.PathDetail{}
 	var pathInfo *model.Path
 
 	err := pathCollection.Find(ctx, bson.M{
@@ -105,43 +104,31 @@ func buildPathEventDistribution(pathEvents []*model.PathEvent, from, to, interva
 	return count, errCount, pathDist, errDist
 }
 
-func (s *Service) GetHopId(ctx context.Context, caller_svc, caller_op, called_svc, called_op string) (uint32, error) {
-	var hop *model.Hop
-	err := hopCollection.Find(ctx, bson.M{
-		"caller_operation_name": caller_op,
-		"caller_service_name":   caller_svc,
-		"called_operation_name": called_op,
-		"called_service_name":   called_svc,
-	}).One(&hop)
-	if err != nil {
-		return 0, err
-	}
-	return hop.Id, nil
-}
-
-func (s *Service) GetHopDetailById(ctx context.Context, hopId uint32, _from, _to, unit string) (*dto.HopDetail, error) {
+func (s *Service) GetHopDetailById(ctx context.Context, callerSvc, callerOp, calledSvc, calledOp, _from, _to, unit string) (*model.HopDetail, error) {
 	from, to := ParseFromToStringToInt(_from, _to)
 	interval := ParseUnitToInterval(unit)
 
-	res := &dto.HopDetail{}
-	var hopInfo *model.Hop
-
-	err := hopCollection.Find(ctx, bson.M{
-		"id": hopId,
-	}).One(&hopInfo)
-	if err != nil {
-		return nil, err
+	res := &model.HopDetail{}
+	var hopInfo = &model.Hop{
+		CallerServiceName:   callerSvc,
+		CalledServiceName:   calledSvc,
+		CallerOperationName: callerOp,
+		CalledOperationName: calledOp,
 	}
 	res.HopInfo = hopInfo
+
 	filter := bson.M{
-		"hop_id": hopId,
+		"caller_service":   callerSvc,
+		"caller_operation": callerOp,
+		"called_service":   calledSvc,
+		"called_operation": calledOp,
 		"timestamp": bson.M{
 			"$gte": from,
 			"$lte": to,
 		},
 	}
 	var hopEvents []*model.HopEvent
-	err = hopEventCollection.Find(ctx, filter).All(&hopEvents)
+	err := hopEventCollection.Find(ctx, filter).All(&hopEvents)
 	if err != nil {
 		return nil, err
 	}

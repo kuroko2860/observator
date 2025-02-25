@@ -51,23 +51,36 @@ const ApiLong = () => {
     sortedData = data.sort((a, b) => b.count - a.count);
   }
   return (
-    <Box>
-      <Typography variant="h5">View API exceed latency threshold</Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 2,
+        padding: 2,
+      }}
+    >
+      <Typography variant="h5" className="text-2xl font-bold">
+        View API exceed latency threshold
+      </Typography>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Grid2 container spacing={2}>
-            <TimeRangeInput />
-            <ThresholdInput label={"Latency (microseconds)"} />
-            <SubmitButtons />
+            <TimeRangeInput className="w-full" />
+            <ThresholdInput
+              label={"Latency (microseconds)"}
+              className="w-full"
+            />
+            <SubmitButtons className="w-full" />
           </Grid2>
         </form>
       </FormProvider>
-      {loading && <CircularProgress />}
-      {error && <div>{error.message}</div>}
+      {loading && <CircularProgress className="m-auto" />}
+      {error && <div className="text-red-600">{error.message}</div>}
       {sortedData ? (
         <CustomContainer>
-          <TableContainer component={Paper}>
-            <Table>
+          <TableContainer component={Paper} className="overflow-x-auto">
+            <Table className="min-w-full">
               <TableHead>
                 <TableRow>
                   <TableCell>Service</TableCell>
@@ -84,7 +97,7 @@ const ApiLong = () => {
                   .map(({ _id: api, count, avg_latency }, index) => (
                     <TableRow
                       key={index}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                      className="hover:bg-gray-200"
                       onClick={() =>
                         navigate(
                           `/api-statistic?service_name=${api.service_name}&endpoint=${api.endpoint}&method=${api.method}`
@@ -114,7 +127,9 @@ const ApiLong = () => {
           />
         </CustomContainer>
       ) : (
-        <Typography variant="h5">No data</Typography>
+        <Typography variant="h5" className="text-lg font-bold">
+          No data
+        </Typography>
       )}
     </Box>
   );

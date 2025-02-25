@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import "./App.css";
 import Home from "./page/Home";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";

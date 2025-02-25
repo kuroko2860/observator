@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.custom-navlink {
+  width: 100%;
+  padding: 16px;
+  background-color: #1976d2;
+  color: #fff;
+  border-radius: 28px;
+
+  text-decoration: none;
+  outline: none;
+}
+.menu {
+  background-color: gray;
+  width: 300px;
+  height: fit-content;
+  border-radius: 28px;
+}

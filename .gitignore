@@ -1,4 +1,7 @@
 neo4j/
+baocao/
+mongo/
+.vscode
 
 target/
 pom.xml.tag

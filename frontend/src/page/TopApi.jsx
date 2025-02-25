@@ -32,16 +32,18 @@ function TopApi() {
     });
   };
   return (
-    <Container>
-      <Typography variant="h5">View most called APIs</Typography>
-      <CustomForm onSubmit={onSubmit}>
+    <Container className="flex flex-col gap-4 p-6 bg-white shadow-lg rounded-lg">
+      <Typography variant="h5" className="text-gray-900">
+        View most called APIs
+      </Typography>
+      <CustomForm onSubmit={onSubmit} className="flex flex-col gap-4">
         <TimeRangeInput />
       </CustomForm>
-      {topApiFetcher.loading && <CircularProgress />}
-      {topApiFetcher.error && <div>{topApiFetcher.error}</div>}
-      {topApiFetcher.data && (
-        <TopApiCalledTable data={topApiFetcher.data}></TopApiCalledTable>
+      {topApiFetcher.loading && <CircularProgress className="self-center" />}
+      {topApiFetcher.error && (
+        <div className="text-red-500">{topApiFetcher.error}</div>
       )}
+      {topApiFetcher.data && <TopApiCalledTable data={topApiFetcher.data} />}
     </Container>
   );
 }
@@ -82,41 +84,68 @@ const TopApiCalledTable = ({ data }) => {
   const navigate = useNavigate();
 
   return (
-    <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
-      <Typography variant="h5" textAlign="center">
+    <Card
+      variant="outlined"
+      sx={{
+        height: "100%",
+        flexGrow: 1,
+        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+        borderRadius: "0.5rem",
+      }}
+    >
+      <Typography
+        variant="h5"
+        textAlign="center"
+        className="text-gray-900 font-bold"
+      >
         Top 10 called APIs
       </Typography>
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+      <TableContainer component={Paper} className="mt-4">
+        <Table
+          sx={{ minWidth: 650 }}
+          aria-label="simple table"
+          className="text-gray-900"
+        >
           <TableHead>
             <TableRow>
-              <TableCell>STT</TableCell>
-              <TableCell>Service</TableCell>
-              <TableCell align="right">Endpoint</TableCell>
-              <TableCell align="right">Method</TableCell>
-              <TableCell align="right">
+              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-left">
+                STT
+              </TableCell>
+              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-left">
+                Service
+              </TableCell>
+              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
+                Endpoint
+              </TableCell>
+              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
+                Method
+              </TableCell>
+              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
                 <TableSortLabel
                   active={orderBy === "count"}
                   direction={orderBy === "count" ? order : "desc"}
                   onClick={handleSortByCount}
+                  className="text-gray-900"
                 >
                   Count
                 </TableSortLabel>
               </TableCell>
-              <TableCell align="right">
+              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
                 <TableSortLabel
                   active={orderBy === "err-count"}
                   direction={orderBy === "err-count" ? order : "desc"}
                   onClick={handleSortByErrCount}
+                  className="text-gray-900"
                 >
                   Error Count
                 </TableSortLabel>
               </TableCell>
-              <TableCell align="right">
+              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
                 <TableSortLabel
                   active={orderBy === "err-rate"}
                   direction={orderBy === "err-rate" ? order : "desc"}
                   onClick={handleSortByErrRate}
+                  className="text-gray-900"
                 >
                   Error Rate
                 </TableSortLabel>
@@ -140,14 +169,27 @@ const TopApiCalledTable = ({ data }) => {
                       )
                     }
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    className="hover:bg-gray-100"
                   >
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{service_name}</TableCell>
-                    <TableCell align="right">{endpoint}</TableCell>
-                    <TableCell align="right">{method}</TableCell>
-                    <TableCell align="right">{count}</TableCell>
-                    <TableCell align="right">{err_count}</TableCell>
-                    <TableCell align="right">
+                    <TableCell className="px-4 py-2 border-b border-gray-300">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 border-b border-gray-300">
+                      {service_name}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 border-b border-gray-300 text-right">
+                      {endpoint}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 border-b border-gray-300 text-right">
+                      {method}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 border-b border-gray-300 text-right">
+                      {count}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 border-b border-gray-300 text-right">
+                      {err_count}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 border-b border-gray-300 text-right">
                       {((err_count / count) * 100).toFixed(2)}%
                     </TableCell>
                   </TableRow>

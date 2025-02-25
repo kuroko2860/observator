@@ -12,9 +12,12 @@ const Search = () => {
     navigate(`/service-detail/${data.service_name}`);
   };
   return (
-    <CustomContainer>
+    <CustomContainer className="flex flex-col gap-4 p-4">
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <form
+          onSubmit={methods.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4"
+        >
           <Grid2 container spacing={2}>
             <ServiceNameInput />
             <SubmitButtons />

@@ -10,8 +10,8 @@ import { getAllServices } from "../redux/services/selector";
 const TimeRangeInput = () => {
   const methods = useFormContext();
   return (
-    <Grid2>
-      <Grid2>
+    <Grid2 container spacing={2} className="flex flex-col gap-2">
+      <Grid2 item xs={12} sm={6}>
         <Controller
           name="from"
           control={methods.control}
@@ -22,12 +22,13 @@ const TimeRangeInput = () => {
                 views={["year", "month", "day", "hours", "minutes", "seconds"]}
                 format="YYYY-MM-DD HH-mm-ss"
                 label="From time"
+                className="w-full"
               />
             </LocalizationProvider>
           )}
         />
       </Grid2>
-      <Grid2>
+      <Grid2 item xs={12} sm={6}>
         <Controller
           name="to"
           control={methods.control}
@@ -38,6 +39,7 @@ const TimeRangeInput = () => {
                 views={["year", "month", "day", "hours", "minutes", "seconds"]}
                 format="YYYY-MM-DD HH-mm-ss"
                 label="to time"
+                className="w-full"
               />
             </LocalizationProvider>
           )}
@@ -58,6 +60,7 @@ const ServiceNameInput = ({ label }) => {
       labelId={"service-name"}
       name={"service_name"}
       options={options}
+      className="w-full"
     />
   );
 };
@@ -72,13 +75,19 @@ const EndpointInput = ({ endpoints }) => {
       labelId={"endpoint"}
       name={"endpoint"}
       options={options}
+      className="w-full"
     />
   );
 };
 const ThresholdInput = ({ label }) => {
   const methods = useFormContext();
   return (
-    <NumberInput control={methods.control} name={"threshold"} label={label} />
+    <NumberInput
+      control={methods.control}
+      name={"threshold"}
+      label={label}
+      className="w-full"
+    />
   );
 };
 const MethodInput = () => {
@@ -97,6 +106,7 @@ const MethodInput = () => {
       name={"method"}
       label={"Method"}
       options={options}
+      className="w-full"
     />
   );
 };
@@ -115,6 +125,7 @@ const TimeUnitInput = () => {
       label={"Time unit"}
       name={"unit"}
       options={options}
+      className="w-full"
     />
   );
 };

@@ -7,7 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"kuroko.com/analystics/internal/model/dto"
+	"kuroko.com/analystics/internal/model"
 )
 
 type Log struct {
@@ -16,11 +16,11 @@ type Log struct {
 	Duration   int64
 }
 
-func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, endpoint, method, _from, _to, unit string) (*dto.ApiStatistic, error) {
+func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, endpoint, method, _from, _to, unit string) (*model.ApiStatistic, error) {
 	from, to := ParseFromToStringToInt(_from, _to)
 	interval := ParseUnitToInterval(unit)
 
-	res := &dto.ApiStatistic{
+	res := &model.ApiStatistic{
 		ServiceName: serviceName,
 		Endpoint:    endpoint,
 		Method:      method,
@@ -30,7 +30,7 @@ func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, endpo
 	}
 	filter := bson.M{
 		"service_name": serviceName,
-		"endpoint":     endpoint,
+		"uri_path":     endpoint,
 		"method":       method,
 		"start_time": bson.M{
 			"$gte": from,
@@ -44,7 +44,7 @@ func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, endpo
 		"duration":    1,
 	}
 	var logs []*Log
-	err := logMiddlewareCollection.Find(ctx, filter).Select(selected).All(&logs)
+	err := httpLogEntryCollection.Find(ctx, filter).Select(selected).All(&logs)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (s *Service) GetLongApiService(ctx context.Context, from, to, threshold str
 		matchStg, groupStg,
 	}
 	var result = []bson.M{}
-	err := logMiddlewareCollection.Aggregate(ctx, pipeline).All(&result)
+	err := httpLogEntryCollection.Aggregate(ctx, pipeline).All(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func (s *Service) GetCalledApiService(ctx context.Context, from, to, username st
 		matchStg, projectStg, groupStg,
 	}
 	var result = []bson.M{}
-	err := logMiddlewareCollection.Aggregate(ctx, pipeline).All(&result)
+	err := httpLogEntryCollection.Aggregate(ctx, pipeline).All(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (s *Service) GetTopCalledApi(ctx context.Context, _from, _to, _limit string
 		matchStg, projectStg, groupStg, sortStg,
 	}
 	var result = []bson.M{}
-	err := logMiddlewareCollection.Aggregate(ctx, pipeline).All(&result)
+	err := httpLogEntryCollection.Aggregate(ctx, pipeline).All(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func (s *Service) GetHttpApiByService(ctx context.Context, _from, _to, service_n
 		matchStg, groupStg,
 	}
 	var result = []bson.M{}
-	err := logMiddlewareCollection.Aggregate(ctx, pipeline).All(&result)
+	err := httpLogEntryCollection.Aggregate(ctx, pipeline).All(&result)
 	if err != nil {
 		return nil, err
 	}

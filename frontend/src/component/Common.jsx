@@ -1,7 +1,7 @@
 import {
   Button,
   FormControl,
-  Grid2,
+  Grid2 as Grid,
   InputLabel,
   MenuItem,
   Paper,
@@ -22,26 +22,43 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { useState } from "react";
+import { twMerge } from "tailwind-merge";
 
-const TextInput = ({ name, label }) => {
+const TextInput = ({ name, label, className }) => {
   const methods = useFormContext();
   return (
-    <Grid2 item="true" xs={12} sm={6}>
+    <Grid
+      item
+      xs={12}
+      sm={6}
+      className={twMerge("flex flex-col gap-2", className)}
+    >
       <Controller
         name={name}
         control={methods.control}
         render={({ field }) => (
-          <TextField {...field} fullWidth label={label} variant="outlined" />
+          <TextField
+            {...field}
+            fullWidth
+            label={label}
+            variant="outlined"
+            className="p-2 border-2 border-gray-300 rounded-lg"
+          />
         )}
       />
-    </Grid2>
+    </Grid>
   );
 };
 
-const NumberInput = ({ name, label }) => {
+const NumberInput = ({ name, label, className }) => {
   const methods = useFormContext();
   return (
-    <Grid2 item="true" xs={12} sm={6}>
+    <Grid
+      item
+      xs={12}
+      sm={6}
+      className={twMerge("flex flex-col gap-2", className)}
+    >
       <Controller
         name={name}
         control={methods.control}
@@ -52,16 +69,22 @@ const NumberInput = ({ name, label }) => {
             fullWidth
             label={label}
             variant="outlined"
+            className="p-2 border-2 border-gray-300 rounded-lg"
           />
         )}
       />
-    </Grid2>
+    </Grid>
   );
 };
-const SelectionInput = ({ labelId, name, label, options }) => {
+const SelectionInput = ({ labelId, name, label, options, className }) => {
   const methods = useFormContext();
   return (
-    <Grid2 item="true" xs={12} sm={6}>
+    <Grid
+      item
+      xs={12}
+      sm={6}
+      className={twMerge("flex flex-col gap-2", className)}
+    >
       <FormControl fullWidth>
         <InputLabel id={labelId}>{label}</InputLabel>
         <Controller
@@ -74,6 +97,7 @@ const SelectionInput = ({ labelId, name, label, options }) => {
               id={name}
               style={{ minWidth: "160px" }}
               label={label}
+              className="p-2 border-2 border-gray-300 rounded-lg"
             >
               {options.map(([value, label]) => (
                 <MenuItem key={label} value={value}>
@@ -84,26 +108,36 @@ const SelectionInput = ({ labelId, name, label, options }) => {
           )}
         />
       </FormControl>
-    </Grid2>
+    </Grid>
   );
 };
 
-const SubmitButtons = () => {
+const SubmitButtons = ({ className }) => {
   const methods = useFormContext();
   return (
-    <Grid2 item="true">
-      <Button type="submit">Submit</Button>
-      <Button type="button" onClick={() => methods.reset()} variant="outlined">
+    <Grid item className={twMerge("flex justify-end gap-2", className)}>
+      <Button type="submit" variant="contained">
+        Submit
+      </Button>
+      <Button
+        type="button"
+        onClick={() => methods.reset()}
+        variant="outlined"
+        className="border-2 border-gray-300 rounded-lg"
+      >
         Reset
       </Button>
-    </Grid2>
+    </Grid>
   );
 };
-const CustomForm = ({ onSubmit, defaultValues, children }) => {
+const CustomForm = ({ onSubmit, defaultValues, children, className }) => {
   const methods = useForm({ defaultValues });
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)}>
+      <form
+        onSubmit={methods.handleSubmit(onSubmit)}
+        className={twMerge("flex flex-col gap-2", className)}
+      >
         {children}
         <SubmitButtons />
       </form>
@@ -111,25 +145,30 @@ const CustomForm = ({ onSubmit, defaultValues, children }) => {
   );
 };
 
-const CustomTablePaging = ({ data, headers, children }) => {
+const CustomTablePaging = ({ data, headers, children, className }) => {
   const [pg, setPg] = useState(0);
   const [rpg, setRpg] = useState(5);
   return (
     <>
-      <TableContainer component={Paper}>
+      <TableContainer
+        component={Paper}
+        className={twMerge("overflow-x-auto", className)}
+      >
         <Table>
           <TableHead>
             <TableRow>
               {headers.map((h) => (
-                <TableCell key={h}>{h}</TableCell>
+                <TableCell key={h} className="p-2 font-bold">
+                  {h}
+                </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {data.slice(pg * rpg, pg * rpg + rpg).map((s, index) => (
               <TableRow key={index}>
-                <TableCell>{pg * rpg + index + 1}</TableCell>
-                <TableCell>{children}</TableCell>
+                <TableCell className="p-2">{pg * rpg + index + 1}</TableCell>
+                <TableCell className="p-2">{children}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -145,6 +184,7 @@ const CustomTablePaging = ({ data, headers, children }) => {
         page={pg}
         rowsPerPage={rpg}
         rowsPerPageOptions={[5, 10]}
+        className="p-2"
       ></TablePagination>
     </>
   );

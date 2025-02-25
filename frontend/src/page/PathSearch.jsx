@@ -77,50 +77,81 @@ const PathSearch = () => {
     sortedData = data.sort((a, b) => b.longest_chain - a.longest_chain);
   }
   return (
-    <Box>
+    <Box
+      className="flex flex-col gap-4 p-4"
+      sx={{
+        "& .MuiFormControl-root": {
+          width: "100%",
+        },
+      }}
+    >
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <form
+          onSubmit={methods.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4"
+        >
           <Grid2 container spacing={2}>
-            <SelectionInput
-              name={"caller_svc"}
-              label="Caller service"
-              labelId="caller-svc"
-              options={svcOpt}
-            />
-            <SelectionInput
-              name={"caller_op"}
-              label="Caller operation"
-              labelId="caller-op"
-              options={callerOpOpt}
-            />
-            <SelectionInput
-              name={"called_svc"}
-              label="Called service"
-              labelId="called-svc"
-              options={svcOpt}
-            />
-            <SelectionInput
-              name={"called_op"}
-              label="Called operation"
-              labelId="called-op"
-              options={calledOpOpt}
-            />
-            <SubmitButtons />
+            <Grid2 item xs={12} sm={6}>
+              <SelectionInput
+                name={"caller_svc"}
+                label="Caller service"
+                labelId="caller-svc"
+                options={svcOpt}
+                className="w-full"
+              />
+            </Grid2>
+            <Grid2 item xs={12} sm={6}>
+              <SelectionInput
+                name={"caller_op"}
+                label="Caller operation"
+                labelId="caller-op"
+                options={callerOpOpt}
+                className="w-full"
+              />
+            </Grid2>
+            <Grid2 item xs={12} sm={6}>
+              <SelectionInput
+                name={"called_svc"}
+                label="Called service"
+                labelId="called-svc"
+                options={svcOpt}
+                className="w-full"
+              />
+            </Grid2>
+            <Grid2 item xs={12} sm={6}>
+              <SelectionInput
+                name={"called_op"}
+                label="Called operation"
+                labelId="called-op"
+                options={calledOpOpt}
+                className="w-full"
+              />
+            </Grid2>
+            <Grid2 item xs={12}>
+              <SubmitButtons />
+            </Grid2>
           </Grid2>
         </form>
       </FormProvider>
-      <CustomContainer>
-        {loading && <CircularProgress />}
-        {error && <p>Error: {error.message}</p>}
+      <CustomContainer
+        className="flex flex-col gap-4 p-4"
+        sx={{
+          "& .MuiPaper-root": {
+            padding: 0,
+          },
+        }}
+      >
+        {loading && <CircularProgress className="m-auto" />}
+        {error && <p className="text-red-500">{error.message}</p>}
         {sortedData && sortedData.length > 0 ? (
           <>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} className="overflow-x-auto">
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Entry service</TableCell>
-                    <TableCell>Longest chain</TableCell>
-                    <TableCell>Action</TableCell>
+                    <TableCell className="px-4 py-2">Entry service</TableCell>
+                    <TableCell className="px-4 py-2">Longest chain</TableCell>
+                    <TableCell className="px-4 py-2">Action</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -128,11 +159,19 @@ const PathSearch = () => {
                     .slice(pg * rpg, pg * rpg + rpg)
                     .map((path, index) => (
                       <TableRow key={index}>
-                        <TableCell>{path.tree_hop.service_name}</TableCell>
-                        <TableCell>{path.longest_chain}</TableCell>
-                        <TableCell>
-                          <Button>
-                            <Link to={`/path-detail/${path.id}`}>Detail</Link>
+                        <TableCell className="px-4 py-2">
+                          {path.tree_hop.service_name}
+                        </TableCell>
+                        <TableCell className="px-4 py-2">
+                          {path.longest_chain}
+                        </TableCell>
+                        <TableCell className="px-4 py-2">
+                          <Button
+                            component={Link}
+                            to={`/path-detail/${path.id}`}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            Detail
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -150,10 +189,11 @@ const PathSearch = () => {
               page={pg}
               rowsPerPage={rpg}
               rowsPerPageOptions={[5, 10, 25]}
+              className="flex justify-center"
             />
           </>
         ) : (
-          <p>{loading || "No data"}</p>
+          <p className="text-center">{loading || "No data"}</p>
         )}
       </CustomContainer>
     </Box>

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import dayjs from "dayjs";
-import { Box, Container } from "@mui/material";
+import { Container, Box } from "@mui/material";
 import Tree from "react-d3-tree";
-import CustomContainer from "./CustomContainer";
 import HopDetails from "./HopDetail";
 
 const PathTree = ({ pathTree, from, to, unit }) => {
@@ -25,8 +24,8 @@ const PathTree = ({ pathTree, from, to, unit }) => {
   };
 
   return (
-    <Container>
-      <Box style={{ width: "100%", height: "70vh" }}>
+    <Container className="h-full flex flex-col">
+      <Box className="flex-1">
         <Tree
           data={treeData}
           onLinkClick={handleLinkClick}
@@ -34,13 +33,12 @@ const PathTree = ({ pathTree, from, to, unit }) => {
         />
       </Box>
       {showHopDetail && (
-        <CustomContainer>
-          <HopDetails
-            params={params}
-            setShowHopDetail={setShowHopDetail}
-            unit={unit}
-          />
-        </CustomContainer>
+        <HopDetails
+          params={params}
+          setShowHopDetail={setShowHopDetail}
+          unit={unit}
+          className="mt-4"
+        />
       )}
     </Container>
   );

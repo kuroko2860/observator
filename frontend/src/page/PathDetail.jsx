@@ -8,8 +8,8 @@ import {
   CircularProgress,
   AccordionDetails,
   AccordionSummary,
-  ArrowDropDownIcon,
 } from "@mui/material";
+import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
 import { TimeRangeInput, TimeUnitInput } from "../component/Input";
 import { SubmitButtons } from "../component/Common";
 import CustomContainer from "../component/CustomContainer";
@@ -42,10 +42,12 @@ const PathDetail = () => {
   };
 
   return (
-    <Box>
-      <Typography variant="h4">Path Detail</Typography>
+    <Box className="p-4 space-y-4">
+      <Typography variant="h4" className="font-bold mb-4">
+        Path Detail
+      </Typography>
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
           <Grid2 container spacing={2}>
             <TimeRangeInput />
             <TimeUnitInput />
@@ -54,12 +56,12 @@ const PathDetail = () => {
         </form>
       </FormProvider>
       {loading && <CircularProgress />}
-      {error && <div>{error}</div>}
+      {error && <div className="text-red-500">{error}</div>}
       {data && (
-        <Box>
+        <Box className="space-y-4">
           <Accordion>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              View path information
+              <Typography>View path information</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <CustomContainer>
@@ -78,7 +80,7 @@ const PathDetail = () => {
           </Accordion>
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              View path statistics
+              <Typography>View path statistics</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <CustomContainer>
@@ -121,7 +123,7 @@ const PathDetail = () => {
           </Accordion>
           <Accordion>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              View Error
+              <Typography>View Error</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <CustomContainer>
@@ -168,7 +170,7 @@ const PathDetail = () => {
           </Accordion>
           <Accordion>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              View path call tree
+              <Typography>View path call tree</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <CustomContainer>

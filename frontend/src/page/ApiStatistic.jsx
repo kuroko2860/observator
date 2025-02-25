@@ -30,10 +30,10 @@ import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
 import dayjs from "dayjs";
 import axios from "../config/axios";
 import { useState } from "react";
-import { StatCard } from "../component/StatCard";
+import StatCard from "../component/StatCard";
 import { SubmitButtons } from "../component/Common";
 import CustomContainer from "../component/CustomContainer";
-import { BarChartCard } from "../component/BarChartCard";
+import BarChartCard from "../component/BarChartCard";
 import { BarChart } from "@mui/x-charts";
 
 function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
@@ -80,10 +80,23 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
   const counts = Object.values(apiFetcher.data?.Distribution || {});
   const errCounts = Object.values(apiFetcher.data?.ErrorDistTime || {});
   return (
-    <Box>
-      <Typography variant="h5">API Statistic</Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: 2,
+        gap: 2,
+      }}
+    >
+      <Typography variant="h5" className="text-2xl font-bold">
+        API Statistic
+      </Typography>
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <form
+          onSubmit={methods.handleSubmit(onSubmit)}
+          className="flex flex-col gap-2"
+        >
           <Grid2 container="true" spacing={2}>
             <ServiceNameInput />
             <EndpointInput endpoints={endpoints} />
@@ -96,16 +109,21 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
       </FormProvider>
       {apiFetcher.loading && <CircularProgress />}
       {apiFetcher.error && (
-        <Typography color="error">{apiFetcher.error}</Typography>
+        <Typography className="text-red-500 text-lg font-bold" variant="body1">
+          {apiFetcher.error}
+        </Typography>
       )}
       {apiFetcher.data ? (
-        <Box>
+        <Box className="flex flex-col gap-2">
           <Accordion defaultExpanded>
-            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              View overall
+            <AccordionSummary
+              expandIcon={<ArrowDropDownIcon />}
+              className="bg-gray-100"
+            >
+              <Typography variant="h6">View overall</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <CustomContainer title="Overall">
+            <AccordionDetails className="bg-white">
+              <CustomContainer title="Overall" className="p-2">
                 <Grid2 container="true" spacing={2}>
                   <StatCard
                     title="Count"
@@ -141,11 +159,14 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
             </AccordionDetails>
           </Accordion>
           <Accordion>
-            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              View latency
+            <AccordionSummary
+              expandIcon={<ArrowDropDownIcon />}
+              className="bg-gray-100"
+            >
+              <Typography variant="h6">View latency</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <CustomContainer title="Latency">
+            <AccordionDetails className="bg-white">
+              <CustomContainer title="Latency" className="p-2">
                 <TableContainer component={Paper}>
                   <Table>
                     <TableHead>
@@ -174,11 +195,14 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
             </AccordionDetails>
           </Accordion>
           <Accordion>
-            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              View error
+            <AccordionSummary
+              expandIcon={<ArrowDropDownIcon />}
+              className="bg-gray-100"
+            >
+              <Typography variant="h6">View error</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-              <CustomContainer title="Error">
+            <AccordionDetails className="bg-white">
+              <CustomContainer title="Error" className="p-2">
                 <Grid2 container="true" spacing={2}>
                   <StatCard
                     title="Error Count"
@@ -230,7 +254,9 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
           </Accordion>
         </Box>
       ) : (
-        <Typography variant="h6">No data</Typography>
+        <Typography className="text-lg font-bold" variant="h6">
+          No data
+        </Typography>
       )}
     </Box>
   );

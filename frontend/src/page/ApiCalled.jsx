@@ -116,11 +116,22 @@ function ApiCalled() {
   };
 
   return (
-    <Box>
-      <Typography variant="h5">View called API by user</Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "1rem",
+        gap: "1rem",
+      }}
+      className="bg-white rounded-lg shadow-md p-4"
+    >
+      <Typography variant="h5" className="text-2xl font-bold">
+        View called API by user
+      </Typography>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Grid2 container spacing={2}>
+          <Grid2 container spacing={2} className="grid grid-cols-1 gap-4">
             <TimeRangeInput />
             <TextInput name="username" label="Username" />
             <ServiceNameInput />
@@ -131,19 +142,19 @@ function ApiCalled() {
           </Grid2>
         </form>
       </FormProvider>
-      {loading && <CircularProgress />}
-      {error && <Typography>{error}</Typography>}
+      {loading && <CircularProgress className="mx-auto" />}
+      {error && <Typography className="text-red-500">{error}</Typography>}
       {data && (
-        <CustomContainer>
-          <TableContainer component={Paper}>
+        <CustomContainer className="overflow-x-auto">
+          <TableContainer component={Paper} className="rounded-lg">
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Service name</TableCell>
-                  <TableCell>Endpoint</TableCell>
-                  <TableCell>Method</TableCell>
-                  <TableCell>User</TableCell>
-                  <TableCell key={"count"}>
+                  <TableCell className="px-6 py-3">Service name</TableCell>
+                  <TableCell className="px-6 py-3">Endpoint</TableCell>
+                  <TableCell className="px-6 py-3">Method</TableCell>
+                  <TableCell className="px-6 py-3">User</TableCell>
+                  <TableCell key={"count"} className="px-6 py-3">
                     <TableSortLabel
                       active={orderBy === "count"}
                       direction={orderBy === "count" ? order : "desc"}
@@ -152,7 +163,7 @@ function ApiCalled() {
                       Count
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell key={"err-count"}>
+                  <TableCell key={"err-count"} className="px-6 py-3">
                     <TableSortLabel
                       active={orderBy === "err-count"}
                       direction={orderBy === "err-count" ? order : "desc"}
@@ -161,7 +172,7 @@ function ApiCalled() {
                       Error count
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell key={"err-rate"}>
+                  <TableCell key={"err-rate"} className="px-6 py-3">
                     <TableSortLabel
                       active={orderBy === "err-rate"}
                       direction={orderBy === "err-rate" ? order : "desc"}
@@ -180,20 +191,26 @@ function ApiCalled() {
                   .map(({ _id: api, count, err_count }, index) => (
                     <TableRow
                       key={index}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                      className="hover:bg-gray-100"
                       onClick={() =>
                         navigate(
                           `/api-statistic?service_name=${api.service_name}&endpoint=${api.endpoint}&method=${api.method}`
                         )
                       }
                     >
-                      <TableCell>{api.service_name}</TableCell>
-                      <TableCell>{api.endpoint}</TableCell>
-                      <TableCell>{api.method}</TableCell>
-                      <TableCell>{api.username}</TableCell>
-                      <TableCell>{count}</TableCell>
-                      <TableCell>{err_count}</TableCell>
-                      <TableCell>
+                      <TableCell className="px-6 py-3">
+                        {api.service_name}
+                      </TableCell>
+                      <TableCell className="px-6 py-3">
+                        {api.endpoint}
+                      </TableCell>
+                      <TableCell className="px-6 py-3">{api.method}</TableCell>
+                      <TableCell className="px-6 py-3">
+                        {api.username}
+                      </TableCell>
+                      <TableCell className="px-6 py-3">{count}</TableCell>
+                      <TableCell className="px-6 py-3">{err_count}</TableCell>
+                      <TableCell className="px-6 py-3">
                         {((err_count / count) * 100).toFixed(2)}%
                       </TableCell>
                     </TableRow>

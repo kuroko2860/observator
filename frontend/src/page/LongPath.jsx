@@ -50,29 +50,45 @@ const LongPath = () => {
       );
   }
   return (
-    <Box>
-      <Typography variant="h4">Longest Path</Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 2,
+        padding: 2,
+      }}
+    >
+      <Typography variant="h4" className="text-2xl font-bold">
+        Longest Path
+      </Typography>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Grid2 container spacing={2}>
+          <Grid2 container spacing={2} className="grid grid-cols-2 gap-4">
             <ThresholdInput name="threshold" />
             <ServiceNameInput label={"Entry service"} />
-            <SubmitButtons />
+            <SubmitButtons className="col-span-2" />
           </Grid2>
         </form>
       </FormProvider>
-      <CustomContainer>
-        {loading && <CircularProgress />}
-        {error && <Typography>{error}</Typography>}
+      <CustomContainer className="bg-white rounded-md shadow-md p-4">
+        {loading && <CircularProgress className="mx-auto" />}
+        {error && <Typography className="text-red-500">{error}</Typography>}
         {sortedData && sortedData.length > 0 ? (
           <>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} className="overflow-auto">
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Entry Service</TableCell>
-                    <TableCell>Longest Chain</TableCell>
-                    <TableCell>Action</TableCell>
+                    <TableCell className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                      Entry Service
+                    </TableCell>
+                    <TableCell className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                      Longest Chain
+                    </TableCell>
+                    <TableCell className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                      Action
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -84,11 +100,16 @@ const LongPath = () => {
                         sx={{
                           "&:last-child td, &:last-child th": { border: 0 },
                         }}
+                        className="hover:bg-gray-100"
                       >
-                        <TableCell>{path.tree_hop.service_name}</TableCell>
-                        <TableCell>{path.longest_chain}</TableCell>
-                        <TableCell>
-                          <Button>
+                        <TableCell className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                          {path.tree_hop.service_name}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                          {path.longest_chain}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                          <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             <Link to={`/path-detail/${path.id}`}>Detail</Link>
                           </Button>
                         </TableCell>
@@ -107,10 +128,13 @@ const LongPath = () => {
               page={pg}
               rowsPerPage={rpg}
               rowsPerPageOptions={[5, 10, 25]}
+              className="mt-4"
             />
           </>
         ) : (
-          <Typography variant="h5">{loading || "No data"}</Typography>
+          <Typography variant="h5" className="text-gray-500 text-center">
+            {loading || "No data"}
+          </Typography>
         )}
       </CustomContainer>
     </Box>

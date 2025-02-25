@@ -1,0 +1,42 @@
+services:
+  nats-server:
+    image: nats:latest
+    ports:
+      - 4222:4222
+  neo4j-db:
+    image: neo4j:latest
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      - NEO4J_AUTH=neo4j/123456789
+    volumes:
+      - ./neo4j:/data
+  mongo-db:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo:/data/db
+  mock-zipkin:
+    build: ./mock-zipkin
+    ports:
+      - 9411:9411
+  mock-nats:
+    build: ./mock-nats
+    depends_on:
+      - nats-server
+  obser-http-log:
+    build: ./obser-http-log
+    restart: always
+    depends_on:
+      - mongo-db
+      - nats-server
+      - mock-nats
+  obser-trace:
+    build: ./obser-trace
+    restart: always
+    depends_on:
+      - neo4j-db
+      - mongo-db
+      - mock-zipkin
