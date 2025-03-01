@@ -2,7 +2,7 @@ package model
 
 type ApiStatistic struct {
 	ServiceName string
-	Endpoint    string
+	URIPath     string
 	Method      string
 	From        int64
 	To          int64
@@ -19,7 +19,7 @@ type ApiStatistic struct {
 }
 type LongApiResponse struct {
 	Id struct {
-		Endpoint    string
+		URIPath     string
 		Method      string
 		ServiceName string
 	}
@@ -28,7 +28,7 @@ type LongApiResponse struct {
 
 type CalledApiResponse struct {
 	Id struct {
-		Endpoint    string
+		URIPath     string
 		Method      string
 		ServiceName string
 	}
@@ -46,11 +46,11 @@ type HopDetail struct {
 }
 
 type ServiceDetail struct {
-	Operations any
-	HttpApi    any
+	Operations any `json:"operations"`
+	HttpApi    any `json:"http_api"`
 }
 type PathDetail struct {
-	PathInfo     *Path
+	PathInfo     *GraphData
 	Count        int
 	Frequency    float32
 	Distribution map[int64]int

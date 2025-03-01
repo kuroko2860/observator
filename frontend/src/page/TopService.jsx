@@ -28,15 +28,7 @@ const TopService = () => {
   };
 
   return (
-    <Container
-      className="flex flex-col gap-4"
-      sx={{
-        "& .MuiTypography-h5": {
-          fontWeight: 600,
-          marginBottom: 2,
-        },
-      }}
-    >
+    <Container className="flex flex-col gap-4 p-6 bg-white shadow-lg rounded-lg">
       <Typography variant="h5">View most called services</Typography>
       <CustomForm onSubmit={onSubmit} className="flex flex-col gap-2">
         <TimeRangeInput />

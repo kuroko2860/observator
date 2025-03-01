@@ -23,8 +23,6 @@ definitions:
         additionalProperties:
           type: integer
         type: object
-      endpoint:
-        type: string
       errorCount:
         type: integer
       errorDist:
@@ -54,6 +52,8 @@ definitions:
       to:
         type: integer
       unit:
+        type: string
+      uripath:
         type: string
     type: object
   model.Error:
@@ -160,10 +160,10 @@ definitions:
       pathInfo:
         $ref: '#/definitions/model.Path'
     type: object
-  model.ServiceObject:
+  model.ServiceDetail:
     properties:
-      serviceName:
-        type: string
+      http_api: {}
+      operations: {}
     type: object
   model.ServiceStatisticObject:
     properties:
@@ -243,9 +243,9 @@ paths:
         name: service_name
         required: true
         type: string
-      - description: Endpoint
+      - description: URI path
         in: query
-        name: endpoint
+        name: uri_path
         required: true
         type: string
       - description: Method
@@ -343,11 +343,26 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get Hop Detail By Id
+      description: Get Hop Detail
       parameters:
-      - description: Hop Id
+      - description: Caller Service
         in: query
-        name: hop_id
+        name: caller_service
+        required: true
+        type: string
+      - description: Caller Operation
+        in: query
+        name: caller_operation
+        required: true
+        type: string
+      - description: Called Service
+        in: query
+        name: called_service
+        required: true
+        type: string
+      - description: Called Operation
+        in: query
+        name: called_operation
         required: true
         type: string
       - description: From
@@ -376,7 +391,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/model.Error'
-      summary: Get Hop Detail By Id
+      summary: Get Hop Detail
       tags:
       - hop
   /http-api:
@@ -441,10 +456,7 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            items:
-              type: string
-            type: array
+          schema: {}
         "500":
           description: Internal Server Error
           schema:
@@ -755,91 +767,6 @@ paths:
       summary: Get All Path From Hop
       tags:
       - path
-  /service-detail:
-    get:
-      consumes:
-      - application/json
-      description: Get Service Detail
-      parameters:
-      - description: Service Name
-        in: query
-        name: service_name
-        required: true
-        type: string
-      - description: From
-        in: query
-        name: from
-        required: true
-        type: string
-      - description: To
-        in: query
-        name: to
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.Error'
-      summary: Get Service Detail
-      tags:
-      - service
-  /service-endpoint:
-    get:
-      consumes:
-      - application/json
-      description: Get Service Endpoint
-      parameters:
-      - description: Service Name
-        in: query
-        name: service_name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.Error'
-      summary: Get Service Endpoint
-      tags:
-      - service
-  /service-list:
-    get:
-      consumes:
-      - application/json
-      description: Get Svc List
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/model.ServiceObject'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.Error'
-      summary: Get Svc List
-      tags:
-      - alert
   /service-statistic:
     get:
       consumes:
@@ -893,6 +820,105 @@ paths:
       summary: Get All Services
       tags:
       - service
+  /services/:service_name:
+    get:
+      consumes:
+      - application/json
+      description: Get Service Detail
+      parameters:
+      - description: Service Name
+        in: query
+        name: service_name
+        required: true
+        type: string
+      - description: From
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ServiceDetail'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Error'
+      summary: Get Service Detail
+      tags:
+      - service
+  /services/:service_name/endpoints:
+    get:
+      consumes:
+      - application/json
+      description: Get Service Endpoint
+      parameters:
+      - description: Service Name
+        in: query
+        name: service_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Error'
+      summary: Get Service Endpoint
+      tags:
+      - service
+  /services/top-called:
+    get:
+      consumes:
+      - application/json
+      description: Get Top Called Service
+      parameters:
+      - description: From
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: To
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.Error'
+      summary: Get Top Called Service
+      tags:
+      - service
   /top-called-api:
     get:
       consumes:
@@ -929,43 +955,6 @@ paths:
       summary: Get Top Called Api
       tags:
       - api
-  /top-called-service:
-    get:
-      consumes:
-      - application/json
-      description: Get Top Called Service
-      parameters:
-      - description: From
-        in: query
-        name: from
-        required: true
-        type: string
-      - description: To
-        in: query
-        name: to
-        required: true
-        type: string
-      - description: Limit
-        in: query
-        name: limit
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/model.Error'
-      summary: Get Top Called Service
-      tags:
-      - service
   /traces:
     get:
       consumes:
@@ -976,7 +965,7 @@ paths:
         in: query
         name: path_id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:

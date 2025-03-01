@@ -10,11 +10,11 @@ import {
   AccordionSummary,
 } from "@mui/material";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
-import { TimeRangeInput, TimeUnitInput } from "../component/Input";
-import { SubmitButtons } from "../component/Common";
-import CustomContainer from "../component/CustomContainer";
-import StatCard from "../component/StatCard";
-import BarChartCard from "../component/BarChartCard";
+import { TimeRangeInput, TimeUnitInput } from "../component/shared/Input";
+import { SubmitButtons } from "../component/shared/Common";
+import CustomContainer from "../component/shared/CustomContainer";
+import StatCard from "../component/shared/StatCard";
+import BarChartCard from "../component/shared/BarChartCard";
 import PathTree from "../component/PathTree";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
@@ -57,25 +57,6 @@ const PathDetail = () => {
       {error && <div className="text-red-500">{error}</div>}
       {data && (
         <Box className="space-y-4">
-          {/* <Accordion>
-            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              <Typography>View path information</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <CustomContainer>
-                <Grid2 container spacing={2}>
-                  <StatCard
-                    title={"Entry service"}
-                    value={data.PathInfo.tree_hop.service_name}
-                  />
-                  <StatCard
-                    title={"Longest chain"}
-                    value={data.PathInfo.longest_chain}
-                  />
-                </Grid2>
-              </CustomContainer>
-            </AccordionDetails>
-          </Accordion> */}
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
               <Typography>View path statistics</Typography>

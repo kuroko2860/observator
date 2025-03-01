@@ -1,26 +1,13 @@
-import { useNavigate } from "react-router-dom";
-import useFetchData from "../hook/useFetchData";
-import { FormProvider, useForm } from "react-hook-form";
-import {
-  Box,
-  Grid2,
-  TableCell,
-  Typography,
-  CircularProgress,
-  TablePagination,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableBody,
-  Paper,
-} from "@mui/material";
-import { ThresholdInput, TimeRangeInput } from "../component/Input";
-import { SubmitButtons } from "../component/Common";
+import { Box, CircularProgress, Grid2, Typography } from "@mui/material";
 import dayjs from "dayjs";
+import { FormProvider, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import { SubmitButtons } from "../component/shared/Common";
+import { ThresholdInput, TimeRangeInput } from "../component/shared/Input";
+import useFetchData from "../hook/useFetchData";
 
-import CustomContainer from "../component/CustomContainer";
-import { useState } from "react";
+import CustomContainer from "../component/shared/CustomContainer";
+import CustomTable from "../component/shared/CustomTable";
 
 const ApiLong = () => {
   const navigate = useNavigate();
@@ -34,10 +21,23 @@ const ApiLong = () => {
       to: null,
     },
   });
-  const [pg, setPg] = useState(0);
-  const [rpg, setRpg] = useState(5);
+
+  const headings = [
+    { sortable: false, name: "service_name", label: "Service Name" },
+    { sortable: false, name: "uri_path", label: "URI Path" },
+    { sortable: false, name: "method", label: "Method" },
+    { sortable: false, name: "count", label: "Exceed count" },
+    { sortable: false, name: "avg_latency", label: "Average Latency" },
+  ];
+
+  const handleRowClick = (rowData) => {
+    const { service_name, uri_path, method } = rowData;
+    navigate(
+      `/api-statistics?service_name=${service_name}&uri_path=${uri_path}&method=${method}`
+    );
+  };
+
   const onSubmit = async (data) => {
-    setPg(0);
     const params = {
       ...data,
       from: data.from?.$d.getTime() || dayjs().startOf("day").valueOf(),
@@ -46,20 +46,19 @@ const ApiLong = () => {
     };
     await fetchData(params);
   };
-  let sortedData = null;
-  if (data) {
-    sortedData = data.sort((a, b) => b.count - a.count);
-  }
+
+  const transform = (data) => {
+    return data
+      .map(({ api, caller, count, avg_latency }) => ({
+        ...api,
+        caller,
+        count,
+        avg_latency,
+      }))
+      .sort((a, b) => b.count - a.count);
+  };
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 2,
-        padding: 2,
-      }}
-    >
+    <Box className="flex flex-col items-center gap-2 p-2">
       <Typography variant="h5" className="text-2xl font-bold">
         View API exceed latency threshold
       </Typography>
@@ -77,51 +76,12 @@ const ApiLong = () => {
       </FormProvider>
       {loading && <CircularProgress className="m-auto" />}
       {error && <div className="text-red-600">{error.message}</div>}
-      {sortedData ? (
+      {data ? (
         <CustomContainer>
-          <TableContainer component={Paper} className="overflow-x-auto">
-            <Table className="min-w-full">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Service</TableCell>
-                  <TableCell>URI Path</TableCell>
-                  <TableCell>Method</TableCell>
-                  <TableCell>Exceed count</TableCell>
-                  <TableCell>Avg latency (miliseconds)</TableCell>
-                  <TableCell>Avg latency (seconds)</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedData
-                  .slice(pg * rpg, pg * rpg + rpg)
-                  .map(({ _id: api, count, avg_latency }, index) => (
-                    <TableRow
-                      key={index}
-                      className="hover:bg-gray-200"
-                      onClick={() =>
-                        navigate(
-                          `/api-statistics?service_name=${api.service_name}&uri_path=${api.uri_path}&method=${api.method}`
-                        )
-                      }
-                    >
-                      <TableCell>{api.service_name}</TableCell>
-                      <TableCell>{api.uri_path}</TableCell>
-                      <TableCell>{api.method}</TableCell>
-                      <TableCell>{count}</TableCell>
-                      <TableCell>{avg_latency.toFixed(0)}</TableCell>
-                      <TableCell>{(avg_latency / 1000).toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            count={sortedData.length}
-            onPageChange={(e, pg) => setPg(pg)}
-            onRowsPerPageChange={(e) => setRpg(parseInt(e.target.value, 10))}
-            page={pg}
-            rowsPerPage={rpg}
-            rowsPerPageOptions={[5, 10, 25, 50, 100]}
+          <CustomTable
+            headings={headings}
+            data={transform(data)}
+            onRowClick={handleRowClick}
           />
         </CustomContainer>
       ) : (

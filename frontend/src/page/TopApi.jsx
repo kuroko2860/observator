@@ -13,8 +13,8 @@ import {
   Paper,
 } from "@mui/material";
 import useFetchData from "../hook/useFetchData";
-import { CustomForm } from "../component/Common";
-import { TimeRangeInput } from "../component/Input";
+import { CustomForm } from "../component/shared/Common";
+import { TimeRangeInput } from "../component/shared/Input";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -86,12 +86,7 @@ const TopApiCalledTable = ({ data }) => {
   return (
     <Card
       variant="outlined"
-      sx={{
-        height: "100%",
-        flexGrow: 1,
-        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-        borderRadius: "0.5rem",
-      }}
+      className="h-full flex flex-col gap-4 p-6 bg-white shadow-lg rounded-lg"
     >
       <Typography
         variant="h5"
@@ -101,11 +96,7 @@ const TopApiCalledTable = ({ data }) => {
         Top 10 called APIs
       </Typography>
       <TableContainer component={Paper} className="mt-4">
-        <Table
-          sx={{ minWidth: 650 }}
-          aria-label="simple table"
-          className="text-gray-900"
-        >
+        <Table className="min-w-full" aria-label="simple table">
           <TableHead>
             <TableRow>
               <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-left">
@@ -168,7 +159,6 @@ const TopApiCalledTable = ({ data }) => {
                         `/api-statistics?service_name=${service_name}&uri_path=${uri_path}&method=${method}`
                       )
                     }
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     className="hover:bg-gray-100"
                   >
                     <TableCell className="px-4 py-2 border-b border-gray-300">

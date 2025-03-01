@@ -12,15 +12,15 @@ import {
   Paper,
 } from "@mui/material";
 import { FormProvider, useForm } from "react-hook-form";
-import { TimeRangeInput } from "../component/Input";
-import CustomContainer from "../component/CustomContainer";
-import BarChartCard from "../component/BarChartCard";
+import { TimeRangeInput } from "../component/shared/Input";
+import CustomContainer from "../component/shared/CustomContainer";
+import BarChartCard from "../component/shared/BarChartCard";
 import { BarChart } from "@mui/x-charts";
 import { useNavigate, useParams } from "react-router-dom";
 import useFetchData from "../hook/useFetchData";
 import dayjs from "dayjs";
 import { useState } from "react";
-import { SubmitButtons } from "../component/Common";
+import { SubmitButtons } from "../component/shared/Common";
 const ServiceDetail = () => {
   const methods = useForm();
   const navigate = useNavigate();
@@ -45,15 +45,7 @@ const ServiceDetail = () => {
     sortedData = data.http_api.sort((a, b) => b.count - a.count);
   }
   return (
-    <Box
-      className="flex flex-col items-center p-4"
-      sx={{
-        "& .MuiPaper-root": {
-          width: "100%",
-          maxWidth: "1200px",
-        },
-      }}
-    >
+    <Box className="flex flex-col items-center p-4 max-w-[1200px]">
       <Typography variant="h4" className="text-3xl font-bold mb-4">
         Service Detail: {service_name}
       </Typography>
@@ -107,9 +99,8 @@ const ServiceDetail = () => {
             <CustomContainer title="HTTP API" className="mt-4">
               <TableContainer component={Paper}>
                 <Table
-                  sx={{ minWidth: 650 }}
                   aria-label="simple table"
-                  className="table-auto"
+                  className="table-auto min-w-[650px]"
                 >
                   <TableHead>
                     <TableRow>
@@ -125,9 +116,7 @@ const ServiceDetail = () => {
                       .map(({ _id, count }, index) => (
                         <TableRow
                           key={index}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
+                          className="border-b-0 last:border-b-0"
                           onClick={() =>
                             navigate(
                               `/api-statistics?service_name=${service_name}&uri_path=${_id.uri_path}&method=${_id.method}`

@@ -51,7 +51,7 @@ type Hop struct {
 	CalledServiceName   string
 	CalledOperationName string
 }
-type Path struct{}
+
 type LogMiddlewareEvent struct {
 	ServiceName string `json:"service_name" bson:"service_name"`
 	Method      string `json:"method" bson:"method"`
@@ -75,10 +75,12 @@ type LogMiddlewareEvent struct {
 }
 
 type PathEvent struct {
-	PathId    uint32
-	Timestamp int64
-	HasError  bool
+	PathId    uint32 `json:"path_id" bson:"path_id"`
+	Timestamp int64  `json:"timestamp" bson:"timestamp"`
+	HasError  bool   `json:"has_error" bson:"has_error"`
 }
+
+type Path struct{}
 type HopEvent struct {
 	HopId               uint32
 	CalledOperationName string
@@ -120,16 +122,20 @@ type HttpLogEntry struct {
 }
 
 type Node struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
+	ID        string `json:"id"`
+	Service   string `json:"service"`
+	Operation string `json:"operation"`
 }
 
 type Edge struct {
+	ID     string `json:"id"`
 	Source string `json:"source"`
 	Target string `json:"target"`
+	Label  string `json:"label"`
 }
 
 type GraphData struct {
-	Nodes []Node `json:"nodes"`
-	Edges []Edge `json:"edges"`
+	PathId int64  `json:"path_id"`
+	Nodes  []Node `json:"nodes"`
+	Edges  []Edge `json:"edges"`
 }

@@ -38,8 +38,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Endpoint",
-                        "name": "endpoint",
+                        "description": "URI path",
+                        "name": "uri_path",
                         "in": "query",
                         "required": true
                     },
@@ -175,7 +175,7 @@ const docTemplate = `{
         },
         "/hop-detail": {
             "get": {
-                "description": "Get Hop Detail By Id",
+                "description": "Get Hop Detail",
                 "consumes": [
                     "application/json"
                 ],
@@ -185,12 +185,33 @@ const docTemplate = `{
                 "tags": [
                     "hop"
                 ],
-                "summary": "Get Hop Detail By Id",
+                "summary": "Get Hop Detail",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Hop Id",
-                        "name": "hop_id",
+                        "description": "Caller Service",
+                        "name": "caller_service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Caller Operation",
+                        "name": "caller_operation",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Called Service",
+                        "name": "called_service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Called Operation",
+                        "name": "called_operation",
                         "in": "query",
                         "required": true
                     },
@@ -324,12 +345,7 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -792,134 +808,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/service-detail": {
-            "get": {
-                "description": "Get Service Detail",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "service"
-                ],
-                "summary": "Get Service Detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Service Name",
-                        "name": "service_name",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "From",
-                        "name": "from",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "To",
-                        "name": "to",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/service-endpoint": {
-            "get": {
-                "description": "Get Service Endpoint",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "service"
-                ],
-                "summary": "Get Service Endpoint",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Service Name",
-                        "name": "service_name",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/service-list": {
-            "get": {
-                "description": "Get Svc List",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "alert"
-                ],
-                "summary": "Get Svc List",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.ServiceObject"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/service-statistic": {
             "get": {
                 "description": "Service Statistic",
@@ -1000,6 +888,154 @@ const docTemplate = `{
                 }
             }
         },
+        "/services/:service_name": {
+            "get": {
+                "description": "Get Service Detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "service"
+                ],
+                "summary": "Get Service Detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service Name",
+                        "name": "service_name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "From",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.ServiceDetail"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/services/:service_name/endpoints": {
+            "get": {
+                "description": "Get Service Endpoint",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "service"
+                ],
+                "summary": "Get Service Endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service Name",
+                        "name": "service_name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/services/top-called": {
+            "get": {
+                "description": "Get Top Called Service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "service"
+                ],
+                "summary": "Get Top Called Service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "From",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "To",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/top-called-api": {
             "get": {
                 "description": "Get Top Called Api",
@@ -1053,61 +1089,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/top-called-service": {
-            "get": {
-                "description": "Get Top Called Service",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "service"
-                ],
-                "summary": "Get Top Called Service",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "From",
-                        "name": "from",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "To",
-                        "name": "to",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Limit",
-                        "name": "limit",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/model.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/traces": {
             "get": {
                 "description": "Get all traces of path",
@@ -1123,7 +1104,7 @@ const docTemplate = `{
                 "summary": "Get all traces of path",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "Path Id",
                         "name": "path_id",
                         "in": "query",
@@ -1331,9 +1312,6 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "endpoint": {
-                    "type": "string"
-                },
                 "errorCount": {
                     "type": "integer"
                 },
@@ -1376,6 +1354,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "unit": {
+                    "type": "string"
+                },
+                "uripath": {
                     "type": "string"
                 }
             }
@@ -1538,12 +1519,11 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ServiceObject": {
+        "model.ServiceDetail": {
             "type": "object",
             "properties": {
-                "serviceName": {
-                    "type": "string"
-                }
+                "http_api": {},
+                "operations": {}
             }
         },
         "model.ServiceStatisticObject": {

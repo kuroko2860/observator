@@ -11,11 +11,11 @@ import {
   Paper,
   CircularProgress,
 } from "@mui/material";
-import CustomContainer from "./CustomContainer";
+import CustomContainer from "./shared/CustomContainer";
 import { useEffect } from "react";
 import useFetchData from "../hook/useFetchData";
-import StatCard from "./StatCard";
-import BarChartCard from "./BarChartCard";
+import StatCard from "./shared/StatCard";
+import BarChartCard from "./shared/BarChartCard";
 import { BarChart } from "@mui/x-charts";
 
 const HopDetails = ({ params, setShowHopDetail, unit }) => {
@@ -35,34 +35,6 @@ const HopDetails = ({ params, setShowHopDetail, unit }) => {
   return (
     data && (
       <Box className="bg-white p-4 rounded-lg shadow-lg">
-        {/* <CustomContainer title={"Hop info"} className="mb-4">
-          <Grid2
-            container
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-          >
-            <StatCard
-              title="Caller service"
-              value={data.HopInfo.caller_service_name}
-              className="col-span-1"
-            />
-            <StatCard
-              title="Caller operation"
-              value={data.HopInfo.caller_operation_name}
-              className="col-span-1"
-            />
-            <StatCard
-              title="Called service"
-              value={data.HopInfo.called_service_name}
-              className="col-span-1"
-            />
-            <StatCard
-              title="Called operation"
-              value={data.HopInfo.called_operation_name}
-              className="col-span-1"
-            />
-          </Grid2>
-        </CustomContainer> */}
-
         <CustomContainer title={"Hop statistic"} className="mb-4">
           <Grid2
             container

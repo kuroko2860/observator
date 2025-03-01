@@ -13,9 +13,9 @@ import (
 // @Param			service_name	query		string	true	"Service Name"
 // @Success		200				{object}	[]string
 // @Failure		500				{object}	model.Error
-// @Router			/operations [get]
+// @Router			/services/:service_name/operations [get]
 func (h *Handler) GetAllOperationsFromServiceHandler(c echo.Context) error {
-	serviceName := c.QueryParam("service_name")
+	serviceName := c.Param("service_name")
 
 	res, err := h.service.GetAllOperationsFromService(c.Request().Context(), serviceName)
 	if err != nil {
@@ -122,9 +122,9 @@ func (h *Handler) GetHttpServiceApiHandler(c echo.Context) error {
 // @Param			service_name	query		string	true	"Service Name"
 // @Success		200				{object}	[]string
 // @Failure		500				{object}	model.Error
-// @Router			/service-endpoint [get]
+// @Router			/services/:service_name/endpoints [get]
 func (h *Handler) GetServiceEndpointHandler(c echo.Context) error {
-	serviceName := c.QueryParam("service_name")
+	serviceName := c.Param("service_name")
 
 	res, err := h.service.GetServiceEndpointService(c.Request().Context(), serviceName)
 	if err != nil {
@@ -144,7 +144,7 @@ func (h *Handler) GetServiceEndpointHandler(c echo.Context) error {
 // @Param			limit			query		string	true	"Limit"
 // @Success		200				{object}	map[string]int
 // @Failure		500				{object}	model.Error
-// @Router			/top-called-service [get]
+// @Router			/services/top-called [get]
 func (h *Handler) GetTopCalledServiceHandler(c echo.Context) error {
 	from := c.QueryParam("from")
 	to := c.QueryParam("to")

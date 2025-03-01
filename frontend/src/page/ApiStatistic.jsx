@@ -81,15 +81,7 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
   const counts = Object.values(apiFetcher.data?.Distribution || {});
   const errCounts = Object.values(apiFetcher.data?.ErrorDistTime || {});
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: 2,
-        gap: 2,
-      }}
-    >
+    <Box className="flex flex-col items-center gap-2 p-2">
       <Typography variant="h5" className="text-2xl font-bold">
         API Statistic
       </Typography>

@@ -2,15 +2,7 @@ import { Typography } from "@mui/material";
 
 function NotFound() {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        flexDirection: "column",
-      }}
-    >
+    <div className="d-flex justify-content-center align-items-center h-100 flex-column">
       <Typography variant="h1" component="h1" gutterBottom>
         404
       </Typography>

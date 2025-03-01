@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { SelectionInput, SubmitButtons } from "../component/Common";
-import CustomContainer from "../component/CustomContainer";
+import { SelectionInput, SubmitButtons } from "../component/shared/Common";
+import CustomContainer from "../component/shared/CustomContainer";
 import useFetchData from "../hook/useFetchData";
 import { useSelector } from "react-redux";
 import { getAllServices } from "../redux/services/selector";
@@ -77,14 +77,7 @@ const PathSearch = () => {
     sortedData = data.sort((a, b) => b.longest_chain - a.longest_chain);
   }
   return (
-    <Box
-      className="flex flex-col gap-4 p-4"
-      sx={{
-        "& .MuiFormControl-root": {
-          width: "100%",
-        },
-      }}
-    >
+    <Box className="flex flex-col gap-4 p-4">
       <FormProvider {...methods}>
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
@@ -133,14 +126,7 @@ const PathSearch = () => {
           </Grid2>
         </form>
       </FormProvider>
-      <CustomContainer
-        className="flex flex-col gap-4 p-4"
-        sx={{
-          "& .MuiPaper-root": {
-            padding: 0,
-          },
-        }}
-      >
+      <CustomContainer className="flex flex-col gap-4 p-4">
         {loading && <CircularProgress className="m-auto" />}
         {error && <p className="text-red-500">{error.message}</p>}
         {sortedData && sortedData.length > 0 ? (

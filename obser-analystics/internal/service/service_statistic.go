@@ -125,7 +125,7 @@ func (s *Service) GetHttpServiceApiService(ctx context.Context, serviceName, _fr
 		{
 			Key: "$group", Value: bson.M{
 				"_id": bson.M{
-					"endpoint": "$endpoint",
+					"uri_path": "$uri_path",
 					"method":   "$method",
 				},
 				"count": bson.M{

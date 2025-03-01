@@ -26,15 +26,9 @@ const pathMap = {
 function Layout() {
   const location = useLocation();
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box className="flex">
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-        }}
-      >
+      <AppBar className="fixed top-0 left-0 z-10 sm:w-[calc(100%-240px)] sm:ml-240">
         <Toolbar>
           <Typography variant="h6" noWrap component="div">
             {pathMap[location.pathname] || "Dashboard"}
@@ -126,15 +120,7 @@ function Layout() {
 
       <Box
         component="main"
-        sx={{
-          backgroundColor: (theme) =>
-            theme.palette.mode === "light"
-              ? theme.palette.grey[100]
-              : theme.palette.grey[900],
-          flexGrow: 1,
-          height: "100vh",
-          overflow: "auto",
-        }}
+        className="bg-lightGrey-100 dark:bg-darkGrey-900 flex-1 h-full overflow-auto"
       >
         <Toolbar />
         <Box>

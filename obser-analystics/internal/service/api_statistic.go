@@ -11,18 +11,18 @@ import (
 )
 
 type Log struct {
-	StartTime  int64
-	StatusCode int
-	Duration   int64
+	StartTime  int64 `json:"start_time" bson:"start_time"`
+	StatusCode int   `json:"status_code" bson:"status_code"`
+	Duration   int64 `json:"duration" bson:"duration"`
 }
 
-func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, endpoint, method, _from, _to, unit string) (*model.ApiStatistic, error) {
+func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, uri_path, method, _from, _to, unit string) (*model.ApiStatistic, error) {
 	from, to := ParseFromToStringToInt(_from, _to)
 	interval := ParseUnitToInterval(unit)
 
 	res := &model.ApiStatistic{
 		ServiceName: serviceName,
-		Endpoint:    endpoint,
+		URIPath:     uri_path,
 		Method:      method,
 		From:        from,
 		To:          to,
@@ -30,7 +30,7 @@ func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, endpo
 	}
 	filter := bson.M{
 		"service_name": serviceName,
-		"uri_path":     endpoint,
+		"uri_path":     uri_path,
 		"method":       method,
 		"start_time": bson.M{
 			"$gte": from,
@@ -93,7 +93,7 @@ func (s *Service) GetApiErrorService(ctx context.Context, logs []*Log, from, to,
 	count := 0
 	var dist = map[int]int{}
 	for _, log := range logs {
-		if log.StatusCode >= 400 && log.StartTime <= 600 {
+		if log.StatusCode >= 400 && log.StatusCode <= 600 {
 			dist[log.StatusCode]++
 			count++
 		}
@@ -105,7 +105,7 @@ func (s *Service) GetApiErrorService(ctx context.Context, logs []*Log, from, to,
 		res[i] = 0
 	}
 	for _, log := range logs {
-		if log.StatusCode >= 400 && log.StartTime <= 600 {
+		if log.StatusCode >= 400 && log.StatusCode <= 600 {
 			key := (log.StartTime / unit) * unit
 			res[key]++
 		}
@@ -148,7 +148,7 @@ func (s *Service) GetLongApiService(ctx context.Context, from, to, threshold str
 			Key: "$group", Value: bson.M{
 				"_id": bson.M{
 					"service_name": "$service_name",
-					"endpoint":     "$endpoint",
+					"uri_path":     "$uri_path",
 					"method":       "$method",
 				},
 				"count": bson.M{
@@ -171,13 +171,16 @@ func (s *Service) GetLongApiService(ctx context.Context, from, to, threshold str
 	return result, nil
 }
 
-func (s *Service) GetCalledApiService(ctx context.Context, from, to, username string) ([]bson.M, error) {
+func (s *Service) GetCalledApiService(ctx context.Context, from, to, username, serviceName, uriPath, method string) ([]bson.M, error) {
 	fromInt, toInt := ParseFromToStringToInt(from, to)
 	match := bson.M{
 		"start_time": bson.M{
 			"$gte": fromInt,
 			"$lte": toInt,
 		},
+		"service_name": serviceName,
+		"uri_path":     uriPath,
+		"method":       method,
 	}
 	if len(username) != 0 {
 		match["username"] = username
@@ -191,7 +194,7 @@ func (s *Service) GetCalledApiService(ctx context.Context, from, to, username st
 		{
 			Key: "$project", Value: bson.M{
 				"service_name": 1,
-				"endpoint":     1,
+				"uri_path":     1,
 				"method":       1,
 				"username":     1,
 				"is_error": bson.M{
@@ -208,7 +211,7 @@ func (s *Service) GetCalledApiService(ctx context.Context, from, to, username st
 		{Key: "$group", Value: bson.M{
 			"_id": bson.M{
 				"service_name": "$service_name",
-				"endpoint":     "$endpoint",
+				"uri_path":     "$uri_path",
 				"method":       "$method",
 				"username":     "$username",
 			},
@@ -247,7 +250,7 @@ func (s *Service) GetTopCalledApi(ctx context.Context, _from, _to, _limit string
 		{
 			Key: "$project", Value: bson.M{
 				"service_name": 1,
-				"endpoint":     1,
+				"uri_path":     1,
 				"method":       1,
 				"is_error": bson.M{
 					"$cond": bson.A{
@@ -263,7 +266,7 @@ func (s *Service) GetTopCalledApi(ctx context.Context, _from, _to, _limit string
 		{Key: "$group", Value: bson.M{
 			"_id": bson.M{
 				"service_name": "$service_name",
-				"endpoint":     "$endpoint",
+				"uri_path":     "$uri_path",
 				"method":       "$method",
 			},
 			"count": bson.M{

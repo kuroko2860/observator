@@ -13,7 +13,7 @@ import (
 // @Accept			json
 // @Produce		json
 // @Param			service_name	query		string	true	"Service Name"
-// @Param			endpoint		query		string	true	"Endpoint"
+// @Param			uri_path		query		string	true	"URI path"
 // @Param			method			query		string	true	"Method"
 // @Param			from			query		string	true	"From"
 // @Param			to				query		string	true	"To"
@@ -23,13 +23,13 @@ import (
 // @Router			/api-statistics [get]
 func (h *Handler) GetApiStatisticHandler(c echo.Context) error {
 	serviceName := c.QueryParam("service_name")
-	endpoint := c.QueryParam("endpoint")
+	uri_path := c.QueryParam("uri_path")
 	method := c.QueryParam("method")
 	from := c.QueryParam("from")
 	to := c.QueryParam("to")
 	unit := c.QueryParam("unit")
 
-	res, err := h.service.GetApiStatisticService(c.Request().Context(), serviceName, endpoint, method, from, to, unit)
+	res, err := h.service.GetApiStatisticService(c.Request().Context(), serviceName, uri_path, method, from, to, unit)
 	if err != nil {
 		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
 	}
@@ -47,7 +47,7 @@ func (h *Handler) GetApiStatisticHandler(c echo.Context) error {
 // @Param			threshold		query		string	true	"Threshold"
 // @Success		200				{object}	[]any
 // @Failure		500				{object}	model.Error
-// @Router			/long-api [get]
+// @Router			/api-statistics/long [get]
 func (h *Handler) GetLongApiHandler(c echo.Context) error {
 	from := c.QueryParam("from")
 	to := c.QueryParam("to")
@@ -69,15 +69,21 @@ func (h *Handler) GetLongApiHandler(c echo.Context) error {
 // @Param			from			query		string	true	"From"
 // @Param			to				query		string	true	"To"
 // @Param			username		query		string	true	"Username"
+// @Param			service_name	query		string	true	"Service Name"
+// @Param			uri_path		query		string	true	"URI path"
+// @Param			method			query		string	true	"Method"
 // @Success		200				{object}	[]any
 // @Failure		500				{object}	model.Error
-// @Router			/called-api [get]
+// @Router			/api-statistics/called [get]
 func (h *Handler) GetCalledApiHandler(c echo.Context) error {
 	from := c.QueryParam("from")
 	to := c.QueryParam("to")
 	username := c.QueryParam("username")
+	serviceName := c.QueryParam("service_name")
+	uriPath := c.QueryParam("uri_path")
+	method := c.QueryParam("method")
 
-	res, err := h.service.GetCalledApiService(c.Request().Context(), from, to, username)
+	res, err := h.service.GetCalledApiService(c.Request().Context(), from, to, username, serviceName, uriPath, method)
 	if err != nil {
 		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
 	}
