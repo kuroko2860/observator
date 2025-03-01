@@ -71,9 +71,9 @@ const EndpointInput = ({ endpoints }) => {
   return (
     <SelectionInput
       control={methods.control}
-      label={"endpoint"}
-      labelId={"endpoint"}
-      name={"endpoint"}
+      label={"URI Path"}
+      labelId={"uri_path"}
+      name={"uri_path"}
       options={options}
       className="w-full"
     />

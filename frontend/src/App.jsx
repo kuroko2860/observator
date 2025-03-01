@@ -13,7 +13,7 @@ import ApiCalled from "./page/ApiCalled";
 import Search from "./page/Search";
 import ServiceDetail from "./page/ServiceDetail";
 import TopService from "./page/TopService";
-import LongPath from "./page/LongPath";
+// import LongPath from "./page/LongPath";
 import PathSearch from "./page/PathSearch";
 import PathDetail from "./page/PathDetail";
 import NotFound from "./page/NotFound";
@@ -42,7 +42,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="top-api" element={<TopApi />} />
-          <Route path="api-statistic" element={<ApiStatistic />} />
+          <Route path="api-statistics" element={<ApiStatistic />} />
           <Route path="api-long" element={<ApiLong />} />
           <Route path="api-called" element={<ApiCalled />} />
           <Route path="search" element={<Search />} />
@@ -51,7 +51,7 @@ function App() {
             element={<ServiceDetail />}
           />
           <Route path="top-service" element={<TopService />} />
-          <Route path="long-path" element={<LongPath />} />
+          {/* <Route path="long-path" element={<LongPath />} /> */}
           <Route path="search-path" element={<PathSearch />} />
           <Route path="path-detail/:path_id" element={<PathDetail />} />
           <Route path="*" element={<NotFound />} />

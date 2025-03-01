@@ -115,7 +115,7 @@ const TopApiCalledTable = ({ data }) => {
                 Service
               </TableCell>
               <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
-                Endpoint
+                URI path
               </TableCell>
               <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
                 Method
@@ -158,14 +158,14 @@ const TopApiCalledTable = ({ data }) => {
               .sort(getComparator())
               .map(
                 (
-                  { _id: { service_name, endpoint, method }, count, err_count },
+                  { _id: { service_name, uri_path, method }, count, err_count },
                   index
                 ) => (
                   <TableRow
                     key={index}
                     onClick={() =>
                       navigate(
-                        `/api-statistics?service_name=${service_name}&endpoint=${endpoint}&method=${method}`
+                        `/api-statistics?service_name=${service_name}&uri_path=${uri_path}&method=${method}`
                       )
                     }
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -178,7 +178,7 @@ const TopApiCalledTable = ({ data }) => {
                       {service_name}
                     </TableCell>
                     <TableCell className="px-4 py-2 border-b border-gray-300 text-right">
-                      {endpoint}
+                      {uri_path}
                     </TableCell>
                     <TableCell className="px-4 py-2 border-b border-gray-300 text-right">
                       {method}

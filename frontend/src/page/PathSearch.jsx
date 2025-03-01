@@ -24,7 +24,7 @@ import axios from "../config/axios";
 const PathSearch = () => {
   const [pg, setPg] = useState(0);
   const [rpg, setRpg] = useState(5);
-  const { data, loading, error, fetchData } = useFetchData("/path-analystic");
+  const { data, loading, error, fetchData } = useFetchData("/paths");
   const [calledOpOpt, setCalledOpOpt] = useState([]);
   const [callerOpOpt, setCallerOpOpt] = useState([]);
 

@@ -39,7 +39,7 @@ function ApiCalled() {
       from: null,
       to: null,
       service_name: "",
-      endpoint: "",
+      uri_path: "",
       method: "",
     },
   });
@@ -69,7 +69,7 @@ function ApiCalled() {
   useEffect(() => {
     if (serviceName) {
       setPg(0);
-      methods.setValue("endpoint", "");
+      methods.setValue("uri_path", "");
       methods.setValue("method", "");
       fetchEndpointsFromService(serviceName);
     }
@@ -107,10 +107,10 @@ function ApiCalled() {
     setOrderBy("err-rate");
   };
   const filterData = ({ _id: api }) => {
-    const { service_name, endpoint, method } = api;
+    const { service_name, uri_path, method } = api;
     return (
       service_name.includes(methods.watch("service_name")) &&
-      endpoint.includes(methods.watch("endpoint")) &&
+      uri_path.includes(methods.watch("uri_path")) &&
       method.includes(methods.watch("method"))
     );
   };
@@ -151,7 +151,7 @@ function ApiCalled() {
               <TableHead>
                 <TableRow>
                   <TableCell className="px-6 py-3">Service name</TableCell>
-                  <TableCell className="px-6 py-3">Endpoint</TableCell>
+                  <TableCell className="px-6 py-3">URI Path</TableCell>
                   <TableCell className="px-6 py-3">Method</TableCell>
                   <TableCell className="px-6 py-3">User</TableCell>
                   <TableCell key={"count"} className="px-6 py-3">
@@ -194,7 +194,7 @@ function ApiCalled() {
                       className="hover:bg-gray-100"
                       onClick={() =>
                         navigate(
-                          `/api-statistic?service_name=${api.service_name}&endpoint=${api.endpoint}&method=${api.method}`
+                          `/api-statistics?service_name=${api.service_name}&uri_path=${api.uri_path}&method=${api.method}`
                         )
                       }
                     >
@@ -202,7 +202,7 @@ function ApiCalled() {
                         {api.service_name}
                       </TableCell>
                       <TableCell className="px-6 py-3">
-                        {api.endpoint}
+                        {api.uri_path}
                       </TableCell>
                       <TableCell className="px-6 py-3">{api.method}</TableCell>
                       <TableCell className="px-6 py-3">

@@ -80,7 +80,7 @@ function Layout() {
             <Popup
               trigger={
                 <ListItem>
-                  <NavLink className={"custom-navlink"} to="/api-statistic">
+                  <NavLink className={"custom-navlink"} to="/api-statistics">
                     API
                   </NavLink>
                 </ListItem>
@@ -94,7 +94,7 @@ function Layout() {
             >
               <List className="menu">
                 <MenuItem to="/top-api" text="Top API" />
-                <MenuItem to="/api-statistic" text="API statistic" />
+                <MenuItem to="/api-statistics" text="API statistic" />
                 <MenuItem to="/api-long" text="Long API" />
                 <MenuItem to="/api-called" text="API called" />
               </List>
@@ -115,8 +115,9 @@ function Layout() {
               arrow={false}
             >
               <List className="menu">
-                <MenuItem to="/long-path" text="Long path" />
+                {/* <MenuItem to="/long-path" text="Long path" /> */}
                 <MenuItem to="/search-path" text="Search path" />
+                <MenuItem to="/path-detail/2298794235" text="Path detail" />
               </List>
             </Popup>
           </List>

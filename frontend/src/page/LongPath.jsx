@@ -25,9 +25,7 @@ import useFetchData from "../hook/useFetchData";
 const LongPath = () => {
   const [pg, setPg] = useState(0);
   const [rpg, setRpg] = useState(5);
-  const { data, error, loading, fetchData } = useFetchData(
-    "/path-analysistic/long"
-  );
+  const { data, error, loading, fetchData } = useFetchData("/long-path");
   const methods = useForm({
     defaultValues: {
       threshold: null,
@@ -65,7 +63,7 @@ const LongPath = () => {
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Grid2 container spacing={2} className="grid grid-cols-2 gap-4">
-            <ThresholdInput name="threshold" />
+            <ThresholdInput label="Threshold" />
             <ServiceNameInput label={"Entry service"} />
             <SubmitButtons className="col-span-2" />
           </Grid2>

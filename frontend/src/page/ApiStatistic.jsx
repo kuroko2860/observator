@@ -42,7 +42,7 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
   const methods = useForm({
     defaultValues: {
       service_name: params.get("service_name"),
-      endpoint: params.get("endpoint"),
+      uri_path: params.get("uri_path"),
       method: params.get("method"),
       unit: "hour",
     },
@@ -66,6 +66,7 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
     }
   }, [serviceName]);
   const onSubmit = async (data) => {
+    console.log(data);
     apiFetcher.fetchData({
       ...defaultValue,
       ...data,
@@ -133,7 +134,7 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
                   <StatCard
                     title="Frequency"
                     value={apiFetcher.data.Frequency}
-                    unit={`calls/${methods.getValue("unit")}`}
+                    unit={`calls/${methods.getValues("unit")}`}
                   />
                   <BarChartCard
                     title="Distribution"
@@ -221,13 +222,15 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
                     <BarChart
                       width={500}
                       height={300}
-                      xAxis={{
-                        scaleType: "band",
-                        data: labels,
-                        labels: "Timestamp",
-                        tickPlacement: "start",
-                        tickLabelPlacement: "tick",
-                      }}
+                      xAxis={[
+                        {
+                          scaleType: "band",
+                          data: labels,
+                          labels: "Timestamp",
+                          tickPlacement: "start",
+                          tickLabelPlacement: "tick",
+                        },
+                      ]}
                       series={[{ data: errCounts, label: "Count" }]}
                     />
                   </BarChartCard>
@@ -235,11 +238,13 @@ function ApiStatistic({ defaultValue = ApiStatisticDefault }) {
                     <BarChart
                       width={500}
                       height={300}
-                      xAxis={{
-                        scaleType: "band",
-                        data: Object.keys(apiFetcher.data.ErrorDist || {}),
-                        labels: "Status Code",
-                      }}
+                      xAxis={[
+                        {
+                          scaleType: "band",
+                          data: Object.keys(apiFetcher.data.ErrorDist || {}),
+                          labels: "Status Code",
+                        },
+                      ]}
                       series={[
                         {
                           data: Object.values(apiFetcher.data.ErrorDist || {}),

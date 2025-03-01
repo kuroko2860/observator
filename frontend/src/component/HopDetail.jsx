@@ -19,12 +19,10 @@ import BarChartCard from "./BarChartCard";
 import { BarChart } from "@mui/x-charts";
 
 const HopDetails = ({ params, setShowHopDetail, unit }) => {
-  const { data, loading, error, fetchData } = useFetchData(
-    "/path-analystic/hop"
-  );
+  const { data, loading, error, fetchData } = useFetchData("/hop-detail");
   useEffect(() => {
     fetchData(params);
-  }, [fetchData, params]);
+  }, [params]);
 
   if (loading) {
     return (
@@ -37,7 +35,7 @@ const HopDetails = ({ params, setShowHopDetail, unit }) => {
   return (
     data && (
       <Box className="bg-white p-4 rounded-lg shadow-lg">
-        <CustomContainer title={"Hop info"} className="mb-4">
+        {/* <CustomContainer title={"Hop info"} className="mb-4">
           <Grid2
             container
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
@@ -63,7 +61,7 @@ const HopDetails = ({ params, setShowHopDetail, unit }) => {
               className="col-span-1"
             />
           </Grid2>
-        </CustomContainer>
+        </CustomContainer> */}
 
         <CustomContainer title={"Hop statistic"} className="mb-4">
           <Grid2

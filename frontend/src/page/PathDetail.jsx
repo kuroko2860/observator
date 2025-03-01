@@ -21,9 +21,7 @@ import dayjs from "dayjs";
 import { BarChart } from "@mui/x-charts";
 const PathDetail = () => {
   const { path_id } = useParams();
-  const { data, loading, error, fetchData } = useFetchData(
-    `/path-analystic/${path_id}`
-  );
+  const { data, loading, error, fetchData } = useFetchData(`/paths/${path_id}`);
   const methods = useForm({
     defaultValues: {
       unit: "hour",
@@ -59,7 +57,7 @@ const PathDetail = () => {
       {error && <div className="text-red-500">{error}</div>}
       {data && (
         <Box className="space-y-4">
-          <Accordion>
+          {/* <Accordion>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
               <Typography>View path information</Typography>
             </AccordionSummary>
@@ -77,7 +75,7 @@ const PathDetail = () => {
                 </Grid2>
               </CustomContainer>
             </AccordionDetails>
-          </Accordion>
+          </Accordion> */}
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
               <Typography>View path statistics</Typography>
@@ -175,7 +173,7 @@ const PathDetail = () => {
             <AccordionDetails>
               <CustomContainer>
                 <PathTree
-                  pathTree={data.PathInfo.tree_hop}
+                  pathTree={data.PathInfo}
                   from={methods.getValues("from")}
                   to={methods.getValues("to")}
                   unit={methods.getValues("unit")}

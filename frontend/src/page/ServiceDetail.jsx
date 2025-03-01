@@ -114,7 +114,7 @@ const ServiceDetail = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell>STT</TableCell>
-                      <TableCell>Endpoint</TableCell>
+                      <TableCell>URI Path</TableCell>
                       <TableCell>Method</TableCell>
                       <TableCell>Count</TableCell>
                     </TableRow>
@@ -130,12 +130,12 @@ const ServiceDetail = () => {
                           }}
                           onClick={() =>
                             navigate(
-                              `/api-statistics?service_name=${service_name}&endpoint=${_id.endpoint}&method=${_id.method}`
+                              `/api-statistics?service_name=${service_name}&uri_path=${_id.uri_path}&method=${_id.method}`
                             )
                           }
                         >
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell>{_id.endpoint}</TableCell>
+                          <TableCell>{_id.uri_path}</TableCell>
                           <TableCell>{_id.method}</TableCell>
                           <TableCell align="right">{count}</TableCell>
                         </TableRow>

@@ -68,7 +68,7 @@ const ApiLong = () => {
           <Grid2 container spacing={2}>
             <TimeRangeInput className="w-full" />
             <ThresholdInput
-              label={"Latency (microseconds)"}
+              label={"Latency (miliseconds)"}
               className="w-full"
             />
             <SubmitButtons className="w-full" />
@@ -84,7 +84,7 @@ const ApiLong = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>Service</TableCell>
-                  <TableCell>Endpoint</TableCell>
+                  <TableCell>URI Path</TableCell>
                   <TableCell>Method</TableCell>
                   <TableCell>Exceed count</TableCell>
                   <TableCell>Avg latency (miliseconds)</TableCell>
@@ -100,18 +100,16 @@ const ApiLong = () => {
                       className="hover:bg-gray-200"
                       onClick={() =>
                         navigate(
-                          `/api-statistic?service_name=${api.service_name}&endpoint=${api.endpoint}&method=${api.method}`
+                          `/api-statistics?service_name=${api.service_name}&uri_path=${api.uri_path}&method=${api.method}`
                         )
                       }
                     >
                       <TableCell>{api.service_name}</TableCell>
-                      <TableCell>{api.endpoint}</TableCell>
+                      <TableCell>{api.uri_path}</TableCell>
                       <TableCell>{api.method}</TableCell>
                       <TableCell>{count}</TableCell>
-                      <TableCell>{(avg_latency / 1000).toFixed(0)}</TableCell>
-                      <TableCell>
-                        {(avg_latency / 1000000).toFixed(2)}
-                      </TableCell>
+                      <TableCell>{avg_latency.toFixed(0)}</TableCell>
+                      <TableCell>{(avg_latency / 1000).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
               </TableBody>
