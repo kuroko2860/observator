@@ -91,16 +91,16 @@ func (s *Service) UpdateDataStatistic(ctx context.Context) error {
 func (s *Service) UpdateDataAlertGet(ctx context.Context, http_logs []types.HttpLogEntry) error {
 	mapTime := make(map[string]int)
 	for _, hle := range http_logs {
-		key := hle.ServiceName + "*" + hle.URI + "*" + hle.UserId + "*" + hle.Referer
+		key := hle.ServiceName + "*" + hle.URIPath + "*" + hle.UserId + "*" + hle.Referer
 		time := mapTime[key]
 		if time == 0 {
 			mapTime[key] = int(hle.StartTime)
 		} else {
 			if hle.StartTime-int64(time) < 30 { // goi cung 1 api trong 30s
-				id := hle.ServiceName + "*" + hle.URI + "*" + hle.Referer
+				id := hle.ServiceName + "*" + hle.URIPath + "*" + hle.Referer
 				_, err := alertGetCollection.UpsertId(ctx, id, types.AlertGetObject{
 					ID:          id,
-					URI:         hle.URI,
+					URIPath:     hle.URIPath,
 					Referer:     hle.Referer,
 					ServiceName: hle.ServiceName,
 					Entry:       hle,

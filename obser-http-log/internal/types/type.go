@@ -2,7 +2,7 @@ package types
 
 type AlertGetObject struct {
 	ID          string       `json:"id" bson:"id"`
-	URI         string       `json:"uri" bson:"uri"`
+	URIPath     string       `json:"uri_path" bson:"uri_path"`
 	Referer     string       `json:"referer" bson:"referer"`
 	ServiceName string       `json:"service_name" bson:"service_name"`
 	Ignore      bool         `json:"ignore" bson:"ignore"`
@@ -42,7 +42,6 @@ type StatisticDone struct {
 
 type HttpLogEntry struct {
 	ServiceName   string `json:"service_name" bson:"service_name"`
-	URI           string `json:"uri" bson:"uri"`
 	URIPath       string `json:"uri_path" bson:"uri_path"`
 	Referer       string `json:"referer" bson:"referer"`
 	UserId        string `json:"user_id" bson:"user_id"`

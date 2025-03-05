@@ -8,7 +8,7 @@ import {
   TablePagination,
   Paper,
 } from "@mui/material";
-import CustomContainer from "../component/CustomContainer";
+import CustomContainer from "../component/shared/CustomContainer";
 import { useSelector } from "react-redux";
 import { getAllServices } from "../redux/services/selector";
 import { useNavigate } from "react-router-dom";

@@ -1,188 +1,235 @@
-import {
-  Box,
-  Button,
-  Grid2,
-  TableContainer,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  TablePagination,
-  Paper,
-  CircularProgress,
-} from "@mui/material";
-import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { SelectionInput, SubmitButtons } from "../component/shared/Common";
-import CustomContainer from "../component/shared/CustomContainer";
-import useFetchData from "../hook/useFetchData";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { getAllServices } from "../redux/services/selector";
-import { Link } from "react-router-dom";
 import axios from "../config/axios";
-const PathSearch = () => {
-  const [pg, setPg] = useState(0);
-  const [rpg, setRpg] = useState(5);
-  const { data, loading, error, fetchData } = useFetchData("/paths");
-  const [calledOpOpt, setCalledOpOpt] = useState([]);
-  const [callerOpOpt, setCallerOpOpt] = useState([]);
 
+const PathSearch = () => {
   const services = useSelector(getAllServices);
 
-  const methods = useForm({
-    defaultValues: {
-      called_svc: "",
-      called_op: "",
-      caller_svc: "",
-      caller_op: "",
-    },
-  });
-  const onSubmit = (data) => {
-    console.log(data);
-    setPg(0);
-    fetchData(data);
-  };
-  const svcOpt = services.map((s) => [s, s]);
-  const calledSvc = methods.watch("called_svc");
-  const callerSvc = methods.watch("caller_svc");
+  const [operationsByService, setOperationsByService] = useState({});
 
-  const fetchCallerOperation = async (callerSvc) => {
+  const [loadingOperations, setLoadingOperations] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [response, setResponse] = useState(null);
+
+  // Service-operation pairs
+  const [pairs, setPairs] = useState([
+    { id: 1, service: "AWS", operation: "" },
+  ]);
+
+  // Fetch operations for a service
+  const fetchOperations = async (service) => {
+    if (operationsByService[service]) {
+      return; // Already fetched
+    }
+
+    setLoadingOperations((prev) => ({ ...prev, [service]: true }));
+
     try {
-      const res = await axios.get(`/services/${callerSvc}/operations`);
-      setCallerOpOpt(res.data.map((op) => [op, op]));
+      const response = await axios.get(`/services/${service}/operations`);
+      const operations = await response.data;
+
+      setOperationsByService((prev) => ({
+        ...prev,
+        [service]: operations,
+      }));
+
+      // Update pairs that use this service to have the first operation if they don't have one set
+      setPairs((currentPairs) =>
+        currentPairs.map((pair) => {
+          if (
+            pair.service === service &&
+            (!pair.operation || !operations.includes(pair.operation))
+          ) {
+            return { ...pair, operation: operations[0] };
+          }
+          return pair;
+        })
+      );
     } catch (error) {
-      console.log(error);
+      console.error(`Error fetching operations for ${service}:`, error);
+    } finally {
+      setLoadingOperations((prev) => ({ ...prev, [service]: false }));
     }
   };
 
-  const fetchCalledOperation = async (calledSvc) => {
+  // Add a new pair
+  const addPair = () => {
+    const newId =
+      pairs.length > 0 ? Math.max(...pairs.map((p) => p.id)) + 1 : 1;
+    const defaultService = services[0];
+
+    setPairs([
+      ...pairs,
+      {
+        id: newId,
+        service: defaultService,
+        operation: operationsByService[defaultService]?.[0] || "",
+      },
+    ]);
+  };
+
+  // Remove a pair
+  const removePair = (id) => {
+    setPairs(pairs.filter((pair) => pair.id !== id));
+  };
+
+  // Update service selection and fetch operations if needed
+  const updateService = (id, service) => {
+    // Fetch operations for this service if not already loaded
+    if (!operationsByService[service]) {
+      fetchOperations(service);
+    }
+
+    setPairs(
+      pairs.map((pair) => {
+        if (pair.id === id) {
+          return {
+            ...pair,
+            service,
+            operation: operationsByService[service]?.[0] || "",
+          };
+        }
+        return pair;
+      })
+    );
+  };
+
+  // Update operation selection
+  const updateOperation = (id, operation) => {
+    setPairs(
+      pairs.map((pair) => {
+        if (pair.id === id) {
+          return { ...pair, operation };
+        }
+        return pair;
+      })
+    );
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
     try {
-      const res = await axios.get(`/services/${calledSvc}/operations`);
-      setCalledOpOpt(res.data.map((op) => [op, op]));
+      const response = await axios.post("/paths", {
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pairs),
+      });
+      const data = await response.data;
+
+      setResponse(data);
     } catch (error) {
-      console.log(error);
+      console.error("Error submitting data:", error);
+      setResponse({
+        success: false,
+        error: "Failed to submit data",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  useEffect(() => {
-    if (calledSvc) {
-      fetchCalledOperation(calledSvc);
-    }
-    if (callerSvc) {
-      fetchCallerOperation(callerSvc);
-    }
-  }, [calledSvc, callerSvc]);
-  let sortedData = null;
-  if (data) {
-    sortedData = data.sort((a, b) => b.longest_chain - a.longest_chain);
-  }
+
+  // Check if all pairs have valid operations
+  const allPairsValid = pairs.every(
+    (pair) =>
+      pair.service && pair.operation && operationsByService[pair.service]
+  );
+
   return (
-    <Box className="flex flex-col gap-4 p-4">
-      <FormProvider {...methods}>
-        <form
-          onSubmit={methods.handleSubmit(onSubmit)}
-          className="flex flex-col gap-4"
-        >
-          <Grid2 container spacing={2}>
-            <Grid2 item xs={12} sm={6}>
-              <SelectionInput
-                name={"caller_svc"}
-                label="Caller service"
-                labelId="caller-svc"
-                options={svcOpt}
-                className="w-full"
-              />
-            </Grid2>
-            <Grid2 item xs={12} sm={6}>
-              <SelectionInput
-                name={"caller_op"}
-                label="Caller operation"
-                labelId="caller-op"
-                options={callerOpOpt}
-                className="w-full"
-              />
-            </Grid2>
-            <Grid2 item xs={12} sm={6}>
-              <SelectionInput
-                name={"called_svc"}
-                label="Called service"
-                labelId="called-svc"
-                options={svcOpt}
-                className="w-full"
-              />
-            </Grid2>
-            <Grid2 item xs={12} sm={6}>
-              <SelectionInput
-                name={"called_op"}
-                label="Called operation"
-                labelId="called-op"
-                options={calledOpOpt}
-                className="w-full"
-              />
-            </Grid2>
-            <Grid2 item xs={12}>
-              <SubmitButtons />
-            </Grid2>
-          </Grid2>
-        </form>
-      </FormProvider>
-      <CustomContainer className="flex flex-col gap-4 p-4">
-        {loading && <CircularProgress className="m-auto" />}
-        {error && <p className="text-red-500">{error.message}</p>}
-        {sortedData && sortedData.length > 0 ? (
-          <>
-            <TableContainer component={Paper} className="overflow-x-auto">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell className="px-4 py-2">Entry service</TableCell>
-                    <TableCell className="px-4 py-2">Longest chain</TableCell>
-                    <TableCell className="px-4 py-2">Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sortedData
-                    .slice(pg * rpg, pg * rpg + rpg)
-                    .map((path, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="px-4 py-2">
-                          {path.tree_hop.service_name}
-                        </TableCell>
-                        <TableCell className="px-4 py-2">
-                          {path.longest_chain}
-                        </TableCell>
-                        <TableCell className="px-4 py-2">
-                          <Button
-                            component={Link}
-                            to={`/path-detail/${path.id}`}
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            Detail
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              count={sortedData.length}
-              onPageChange={(e, pg) => setPg(pg)}
-              onRowsPerPageChange={(e) => {
-                setRpg(parseInt(e.target.value, 10));
-                setPg(0);
-              }}
-              page={pg}
-              rowsPerPage={rpg}
-              rowsPerPageOptions={[5, 10, 25]}
-              className="flex justify-center"
-            />
-          </>
-        ) : (
-          <p className="text-center">{loading || "No data"}</p>
-        )}
-      </CustomContainer>
-    </Box>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-6">
+        Service &amp; Operation Selector
+      </h1>
+
+      <form onSubmit={handleSubmit}>
+        {pairs.map((pair) => (
+          <div key={pair.id} className="flex items-center gap-4 mb-4">
+            <div className="w-1/3">
+              <label className="block text-sm font-medium mb-1">Service</label>
+              <select
+                className="w-full rounded-md border border-gray-300 p-2"
+                value={pair.service}
+                onChange={(e) => updateService(pair.id, e.target.value)}
+              >
+                {services.map((service) => (
+                  <option key={service} value={service}>
+                    {service}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="w-1/3">
+              <label className="block text-sm font-medium mb-1">
+                Operation
+              </label>
+              <select
+                className="w-full rounded-md border border-gray-300 p-2"
+                value={pair.operation}
+                onChange={(e) => updateOperation(pair.id, e.target.value)}
+                disabled={
+                  loadingOperations[pair.service] ||
+                  !operationsByService[pair.service]
+                }
+              >
+                {loadingOperations[pair.service] ? (
+                  <option>Loading operations...</option>
+                ) : operationsByService[pair.service] ? (
+                  operationsByService[pair.service].map((operation) => (
+                    <option key={operation} value={operation}>
+                      {operation}
+                    </option>
+                  ))
+                ) : (
+                  <option>Select a service first</option>
+                )}
+              </select>
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                className="bg-red-500 text-white p-2 rounded-md mt-6"
+                onClick={() => removePair(pair.id)}
+                disabled={pairs.length <= 1}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <div className="flex gap-4 mt-6">
+          <button
+            type="button"
+            className="bg-green-500 text-white py-2 px-4 rounded-md"
+            onClick={addPair}
+          >
+            Add Service & Operation
+          </button>
+
+          <button
+            type="submit"
+            className="bg-blue-500 text-white py-2 px-4 rounded-md"
+            disabled={isSubmitting || !allPairsValid}
+          >
+            {isSubmitting ? "Submitting..." : "Submit"}
+          </button>
+        </div>
+      </form>
+
+      {response && (
+        <div className="mt-8 p-4 border rounded-md bg-gray-50">
+          <h2 className="text-xl font-bold mb-4">Response</h2>
+          <pre className="bg-gray-100 p-4 rounded overflow-x-auto">
+            {JSON.stringify(response, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
   );
 };
 

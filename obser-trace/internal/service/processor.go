@@ -2,25 +2,21 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"strconv"
+	"strings"
 
+	"github.com/google/uuid"
+	"github.com/qiniu/qmgo"
+	"go.mongodb.org/mongo-driver/bson"
 	"kuroko.com/processor/internal/types"
 )
 
-func (s *Service) ProcessGraph(ctx context.Context, root *types.GraphNode, errPath bool) {
-	pathId, err := s.CaculatePathId(ctx, root, 0)
-	if err != nil {
-		fmt.Printf("caculate path id err: %s\n", err)
-		return
-	}
-
+func (s *Service) ProcessGraph(ctx context.Context, root *types.GraphNode, pathId uint32) {
 	pathEvent := &types.PathEvent{
-		PathId:  pathId,
-		TraceId: root.Span.TraceId,
-
-		LongestChain: s.caculateLongestChain(ctx, root),
-		Timestamp:    root.Span.Timestamp,
-		HasError:     errPath,
+		ID:        uuid.New().String(),
+		PathID:    pathId,
+		TraceID:   root.Span.TraceId,
+		Timestamp: root.Span.Timestamp,
 	}
 	pathEventCollection.InsertOne(ctx, pathEvent)
 	newRoot := &types.GraphNode{
@@ -45,18 +41,31 @@ func (s *Service) CaculatePathId(ctx context.Context, root *types.GraphNode, lev
 	return hash, nil
 }
 
+// insert hop and hop event
 func (s *Service) dfs(ctx context.Context, root *types.GraphNode, pathId uint32) {
 	if root == nil {
 		return
 	}
-	for _, child := range root.Children {
-		hopEvent := &types.HopEvent{
-			PathId:              pathId,
-			CallerServiceName:   root.Span.LocalEndpoint,
-			CallerOperationName: root.Span.Name,
-			CalledServiceName:   child.Span.LocalEndpoint,
-			CalledOperationName: child.Span.Name,
 
+	for _, child := range root.Children {
+		hopID := generateHopID(root, child, pathId)
+		var hop types.Hop
+		err := hopCollection.Find(ctx, bson.M{"_id": hopID}).One(&hop)
+		if err != nil {
+			if qmgo.IsErrNoDocuments(err) {
+				hop = types.Hop{
+					ID:              hopID,
+					PathID:          pathId,
+					CallerService:   root.Span.LocalEndpoint,
+					CallerOperation: root.Span.Name,
+					CalledService:   child.Span.LocalEndpoint,
+					CalledOperation: child.Span.Name,
+				}
+				hopCollection.InsertOne(ctx, &hop)
+			}
+		}
+		hopEvent := &types.HopEvent{
+			ID:        uuid.New().String(),
 			Timestamp: child.Span.Timestamp / 1000, // to milisecond
 			Duration:  child.Span.Duration,
 			HasError:  s.isSpanError(child.Span),
@@ -64,4 +73,8 @@ func (s *Service) dfs(ctx context.Context, root *types.GraphNode, pathId uint32)
 		hopEventCollection.InsertOne(ctx, hopEvent)
 		s.dfs(ctx, child, pathId)
 	}
+}
+
+func generateHopID(parent, child *types.GraphNode, pathId uint32) string {
+	return strings.ToUpper(parent.Span.LocalEndpoint + "_" + parent.Span.Name + "_" + child.Span.LocalEndpoint + "_" + child.Span.Name + "_" + strconv.Itoa(int(pathId)))
 }

@@ -7,15 +7,11 @@ import (
 	"kuroko.com/processor/internal/types"
 )
 
-func (s *Service) ConvertTraceToGraph(ctx context.Context, trace []*types.SpanResponse) (*types.GraphNode, bool) {
+func (s *Service) ConvertTraceToGraph(ctx context.Context, trace []*types.SpanResponse) (*types.GraphNode, error) {
 	root := &types.GraphNode{}
-	var errPath bool = false
 	mp := make(map[string]*types.GraphNode)
 
 	for _, span := range trace {
-		if s.isSpanError(span) {
-			errPath = true
-		}
 		var node *types.GraphNode
 		if _node, exists := mp[span.Id]; exists {
 			_node.Span = span
@@ -37,7 +33,7 @@ func (s *Service) ConvertTraceToGraph(ctx context.Context, trace []*types.SpanRe
 			}
 		}
 	}
-	return root, errPath
+	return root, nil
 }
 
 func (s *Service) caculateLongestChain(ctx context.Context, root *types.GraphNode) int {

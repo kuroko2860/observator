@@ -1,34 +1,54 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"kuroko.com/analystics/internal/model"
 )
 
-// @Summary		Get All Path From Hop
-// @Description	Get All Path From Hop
+// @Summary		Get All Path From Operation
+// @Description	Get All Path From Operation
 // @Tags			path
 // @Accept			json
 // @Produce		json
-// @Param			caller_svc	query		string	true	"Caller Service"
-// @Param			caller_op	query		string	true	"Caller Operation"
-// @Param			called_svc	query		string	true	"Called Service"
-// @Param			called_op	query		string	true	"Called Operation"
-// @Success		200				{object}	[]model.GraphData
+// @Success		200				{object}	[]model.PathResponse
 // @Failure		500				{object}	model.Error
-// @Router			/paths [get]
+// @Router			/paths [post]
 func (h *Handler) GetAllPathFromHopHandler(c echo.Context) error {
-	callerSvc := c.QueryParam("caller_svc")
-	callerOp := c.QueryParam("caller_op")
-	calledSvc := c.QueryParam("called_svc")
-	calledOp := c.QueryParam("called_op")
-
-	res, err := h.service.GetAllPathFromHop(c.Request().Context(), callerSvc, callerOp, calledSvc, calledOp)
-	if err != nil {
-		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
+	var req model.RequestPayload
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, model.ResultResponse{
+			Success: false,
+			Error:   "Invalid request format",
+		})
 	}
 
-	return c.JSON(200, res)
+	// Extract unique operation names
+	operations := make([]string, 0)
+	operationMap := make(map[string]bool)
+
+	for _, pair := range req.Pairs {
+		if !operationMap[pair.Operation] {
+			operations = append(operations, pair.Operation)
+			operationMap[pair.Operation] = true
+		}
+	}
+
+	// Find paths between operations
+	paths, err := h.service.GetAllPathsFromOperations(c.Request().Context(), operations)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, model.ResultResponse{
+			Success: false,
+			Error:   err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, model.ResultResponse{
+		Success: true,
+		Paths:   paths,
+	})
+
 }
 
 // @Summary		Get Path Detail By Id

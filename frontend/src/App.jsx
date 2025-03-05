@@ -4,13 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { fetchAllServices } from "./redux/services/slice";
 import { Box, CircularProgress } from "@mui/material";
-import Error from "./page/Error";
+import Error from "./component/shared/Error";
 import Layout from "./layout/Layout";
 import TopApi from "./page/TopApi";
 import ApiStatistic from "./page/ApiStatistic";
 import ApiLong from "./page/ApiLong";
 import ApiCalled from "./page/ApiCalled";
-import Search from "./page/Search";
+// import Search from "./page/Search";
 import ServiceDetail from "./page/ServiceDetail";
 import TopService from "./page/TopService";
 // import LongPath from "./page/LongPath";
@@ -45,7 +45,7 @@ function App() {
           <Route path="api-statistics" element={<ApiStatistic />} />
           <Route path="api-long" element={<ApiLong />} />
           <Route path="api-called" element={<ApiCalled />} />
-          <Route path="search" element={<Search />} />
+          {/* <Route path="search" element={<Search />} /> */}
           <Route
             path="service-detail/:service_name"
             element={<ServiceDetail />}

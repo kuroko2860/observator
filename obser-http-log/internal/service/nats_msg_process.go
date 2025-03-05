@@ -19,7 +19,7 @@ func (s *Service) ReceiveNATSMsg(m *nats.Msg) error {
 }
 
 func (s *Service) ProcessHttpLogEntry(key string, entry types.HttpLogEntry) error {
-	if entry.URI == "/-/ready" || entry.URI == "/metrics" {
+	if entry.URIPath == "/-/ready" || entry.URIPath == "/metrics" {
 		return nil
 	}
 	// bo service goi service, su dung tracer de track

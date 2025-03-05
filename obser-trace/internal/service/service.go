@@ -5,26 +5,29 @@ import (
 
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
-
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 type Service struct {
 	*qmgo.Database
-	driver neo4j.DriverWithContext
 }
 
 var hopEventCollection *qmgo.Collection
+var hopCollection *qmgo.Collection
+var operationCollection *qmgo.Collection
 var pathEventCollection *qmgo.Collection
 var spanCollection *qmgo.Collection
 var timeCollection *qmgo.Collection // time in milliseconds  in db: 1739721982
 var pathIdCollection *qmgo.Collection
+var pathCollection *qmgo.Collection
 
-func NewService(db *qmgo.Database, driver neo4j.DriverWithContext) *Service {
-	s := &Service{db, driver}
+func NewService(db *qmgo.Database) *Service {
+	s := &Service{db}
 
 	hopEventCollection = s.Collection("hop_event")
+	hopCollection = s.Collection("hop")
+	operationCollection = s.Collection("operation")
 	pathEventCollection = s.Collection("path_event")
+	pathCollection = s.Collection("path")
 	timeCollection = s.Collection("time")
 	spanCollection = s.Collection("span")
 	pathIdCollection = s.Collection("path_id")

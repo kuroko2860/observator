@@ -12,8 +12,8 @@ import { BarChart } from "@mui/x-charts";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import dayjs from "dayjs";
-import { CustomForm } from "../component/Common";
-import { TimeRangeInput } from "../component/Input";
+import { CustomForm } from "../component/shared/Common";
+import { TimeRangeInput } from "../component/shared/Input";
 
 const TopService = () => {
   const topSvcFetcher = useFetchData("/services/top-called");

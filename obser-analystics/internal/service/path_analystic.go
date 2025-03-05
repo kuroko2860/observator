@@ -2,90 +2,16 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"strconv"
 
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"go.mongodb.org/mongo-driver/bson"
 	"kuroko.com/analystics/internal/model"
 )
 
-func (s *Service) GetAllPathFromHop(ctx context.Context, callerSvc, callerOp, calledSvc, calledOp string) ([]*model.GraphData, error) {
-	var res []*model.GraphData
-	mp := make(map[int64]*model.GraphData)
-	nodeIds := make(map[string]bool)
+func (s *Service) GetAllPathsFromOperations(ctx context.Context, operations []string) ([]model.PathResponse, error) {
 
-	session := s.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
-	defer session.Close(ctx)
-
-	_, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(ctx, `
-			match path=(callerOperation:Operation {name:$callerOp, service:$callerSvc})-[r:CALLS*]->(calledOperation:Operation {name:$calledOp, service:$calledSvc})
-			with path, relationships(path) as rels
-			unwind rels as rel
-			with distinct rel.pathId as pathId
-			match (source:Operation)-[rel:CALLS]->(target:Operation)
-			where rel.pathId = pathId
-			return source, target, pathId
-		`, map[string]interface{}{
-			"callerSvc": callerSvc,
-			"callerOp":  callerOp,
-			"calledSvc": calledSvc,
-			"calledOp":  calledOp,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for result.Next(ctx) {
-			record := result.Record()
-			_source, _ := record.Get("source")
-			_target, _ := record.Get("target")
-			pathId, _ := record.Get("pathId")
-			if mp[pathId.(int64)] == nil {
-				mp[pathId.(int64)] = &model.GraphData{PathId: pathId.(int64)}
-			}
-
-			source := _source.(neo4j.Node)
-			target := _target.(neo4j.Node)
-
-			mp[pathId.(int64)].Edges = append(mp[pathId.(int64)].Edges,
-				model.Edge{
-					ID:     fmt.Sprintf("%v-%v", source.ElementId, target.ElementId),
-					Source: source.Props["name"].(string),
-					Target: target.Props["name"].(string),
-				},
-			)
-
-			if _, ok := nodeIds[source.ElementId]; !ok {
-				nodeIds[source.ElementId] = true
-				mp[pathId.(int64)].Nodes = append(mp[pathId.(int64)].Nodes,
-					model.Node{
-						ID:        source.ElementId,
-						Operation: source.Props["name"].(string),
-						Service:   source.Props["service"].(string),
-					})
-			}
-			if _, ok := nodeIds[target.ElementId]; !ok {
-				nodeIds[target.ElementId] = true
-				mp[pathId.(int64)].Nodes = append(mp[pathId.(int64)].Nodes,
-					model.Node{
-						ID:        target.ElementId,
-						Operation: target.Props["name"].(string),
-						Service:   target.Props["service"].(string),
-					})
-			}
-
-		}
-		return nil, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range mp {
-		res = append(res, v)
-	}
-	return res, nil
+	return nil, nil
 }
 
 func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, _to, unit string) (*model.PathDetail, error) {
@@ -95,61 +21,6 @@ func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, 
 
 	res := &model.PathDetail{}
 	pathInfo := &model.GraphData{PathId: int64(pathId)}
-	nodeIds := make(map[string]bool)
-
-	session := s.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
-	defer session.Close(ctx)
-
-	_, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(ctx, `
-			match (callerOperation:Operation)-[r:CALLS {pathId:$pathId}]->(calledOperation:Operation)
-			return callerOperation, calledOperation
-			`, map[string]interface{}{
-			"pathId": uint32(pathId),
-		})
-		if err != nil {
-			return nil, err
-		}
-		for result.Next(ctx) {
-			record := result.Record()
-			_source, _ := record.Get("callerOperation")
-			_target, _ := record.Get("calledOperation")
-			if _source != nil && _target != nil {
-				source := _source.(neo4j.Node)
-				target := _target.(neo4j.Node)
-				pathInfo.Edges = append(pathInfo.Edges,
-					model.Edge{
-						ID:     fmt.Sprintf("%v-%v", source.ElementId, target.ElementId),
-						Source: source.ElementId,
-						Target: target.ElementId,
-					},
-				)
-
-				if _, ok := nodeIds[source.ElementId]; !ok {
-					nodeIds[source.ElementId] = true
-					pathInfo.Nodes = append(pathInfo.Nodes,
-						model.Node{
-							ID:        source.ElementId,
-							Operation: source.Props["name"].(string),
-							Service:   source.Props["service"].(string),
-						})
-				}
-				if _, ok := nodeIds[target.ElementId]; !ok {
-					nodeIds[target.ElementId] = true
-					pathInfo.Nodes = append(pathInfo.Nodes,
-						model.Node{
-							ID:        target.ElementId,
-							Operation: target.Props["name"].(string),
-							Service:   target.Props["service"].(string),
-						})
-				}
-			}
-		}
-		return nil, nil
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	res.PathInfo = pathInfo
 	filter := bson.M{
@@ -160,7 +31,7 @@ func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, 
 		},
 	}
 	var pathEvents []*model.PathEvent
-	err = pathEventCollection.Find(ctx, filter).All(&pathEvents)
+	err := pathEventCollection.Find(ctx, filter).All(&pathEvents)
 	if err != nil {
 		return nil, err
 	}

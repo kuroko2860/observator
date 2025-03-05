@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"kuroko.com/analystics/internal/model"
@@ -13,31 +12,7 @@ import (
 
 func (s *Service) GetAllOperationsFromService(ctx context.Context, serviceName string) ([]string, error) {
 	var res []string
-	session := s.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
-	defer session.Close(ctx)
 
-	_, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
-		result, err := tx.Run(ctx, `
-			MATCH (s:Service)-[:PERFORMS]->(o:Operation)
-			WHERE s.name = $serviceName
-			RETURN distinct o.name as name
-		`, map[string]interface{}{
-			"serviceName": serviceName,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for result.Next(ctx) {
-			if record, ok := result.Record().Get("name"); ok {
-				res = append(res, record.(string))
-
-			}
-		}
-		return nil, nil
-	})
-	if err != nil {
-		return nil, err
-	}
 	return res, nil
 }
 
@@ -66,29 +41,7 @@ func (s *Service) GetAllOperationsCountFromService(ctx context.Context, serviceN
 
 func (s *Service) GetAllServices(ctx context.Context) ([]string, error) {
 	var res []string
-	session := s.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
-	defer session.Close(ctx)
 
-	_, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
-		result, err := tx.Run(ctx, `
-			MATCH (s:Service)
-			RETURN distinct s.name as name
-		`, map[string]interface{}{})
-		if err != nil {
-			return nil, err
-		}
-		for result.Next(ctx) {
-			if record, ok := result.Record().Get("name"); ok {
-				res = append(res, record.(string))
-
-			}
-		}
-		return nil, nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
 	return res, nil
 }
 

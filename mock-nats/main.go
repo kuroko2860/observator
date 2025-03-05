@@ -14,7 +14,6 @@ import (
 type HttpRequestLog struct {
 	ServiceName string `json:"service_name" bson:"service_name"`
 	Method      string `json:"method" bson:"method"`
-	URI         string `json:"uri" bson:"uri"`
 	URIPath     string `json:"uri_path" bson:"uri_path"`
 	Protocol    string `json:"protocol" bson:"protocol"`
 	Host        string `json:"host" bson:"host"`
@@ -34,7 +33,9 @@ type HttpRequestLog struct {
 }
 
 var services = []string{}
+var paths = []string{}
 var SERVICES_NUMS = 7
+var PATHS_NUMS = 4
 
 // var NATS_SERVER = "nats://nats-server:4222"
 var NATS_SERVER = "nats://localhost:4222"
@@ -42,6 +43,9 @@ var NATS_SERVER = "nats://localhost:4222"
 func main() {
 	for i := 1; i <= SERVICES_NUMS; i++ {
 		services = append(services, fmt.Sprintf("service-%d", i))
+	}
+	for i := 1; i <= PATHS_NUMS; i++ {
+		paths = append(paths, fmt.Sprintf("path-%d", i))
 	}
 	nc, err := nats.Connect(NATS_SERVER)
 	if err != nil {
@@ -78,8 +82,7 @@ func generateHttpLog() *HttpRequestLog {
 	return &HttpRequestLog{
 		ServiceName: services[rand.Intn(SERVICES_NUMS)],
 		Method:      methods[rand.Intn(len(methods))],
-		URI:         "/api/v1/" + faker.Word(),
-		URIPath:     "/api/v1/" + faker.Word(),
+		URIPath:     "/api/v1/" + paths[rand.Intn(PATHS_NUMS)],
 		Protocol:    protocols[rand.Intn(len(protocols))],
 		Host:        faker.DomainName(),
 		RemoteIP:    faker.IPv4(),

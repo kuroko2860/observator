@@ -25,15 +25,15 @@ import {
   ServiceNameInput,
   TimeRangeInput,
   TimeUnitInput,
-} from "../component/Input";
+} from "../component/shared/Input";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
 import dayjs from "dayjs";
 import axios from "../config/axios";
 import { useState } from "react";
-import StatCard from "../component/StatCard";
-import { SubmitButtons } from "../component/Common";
-import CustomContainer from "../component/CustomContainer";
-import BarChartCard from "../component/BarChartCard";
+import StatCard from "../component/shared/StatCard";
+import { SubmitButtons } from "../component/shared/Common";
+import CustomContainer from "../component/shared/CustomContainer";
+import BarChartCard from "../component/shared/BarChartCard";
 import { BarChart } from "@mui/x-charts";
 
 function ApiStatistic({ defaultValue = ApiStatisticDefault }) {

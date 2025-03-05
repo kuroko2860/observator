@@ -65,3 +65,34 @@ type GroupResult struct {
 	}
 	Count int
 }
+
+// ServiceOperation represents a service-operation pair
+type ServiceOperation struct {
+	ID        int    `json:"id"`
+	Service   string `json:"service"`
+	Operation string `json:"operation"`
+}
+
+// RequestPayload represents the body of the request
+type RequestPayload struct {
+	Pairs []ServiceOperation `json:"pairs"`
+}
+
+// PathResponse represents a path in the graph
+type PathResponse struct {
+	Nodes []OperationNode `json:"nodes"`
+	Path  string          `json:"path"`
+}
+
+// OperationNode represents an operation node from Neo4j
+type OperationNode struct {
+	Name    string `json:"name"`
+	Service string `json:"service"`
+}
+
+// ResultResponse is the API response structure
+type ResultResponse struct {
+	Success bool           `json:"success"`
+	Paths   []PathResponse `json:"paths"`
+	Error   string         `json:"error,omitempty"`
+}

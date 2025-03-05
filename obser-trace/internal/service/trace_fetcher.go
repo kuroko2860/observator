@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
 	"kuroko.com/processor/internal/config"
 	"kuroko.com/processor/internal/types"
@@ -67,78 +68,84 @@ func (s *Service) FetchTracesFromTimeRange(ctx context.Context, endOld, endNew, 
 }
 
 func (s *Service) ProcessTrace(ctx context.Context, trace []*types.SpanResponse) error {
-	root, errPath := s.ConvertTraceToGraph(ctx, trace)
+	root, err := s.ConvertTraceToGraph(ctx, trace)
+	if err != nil {
+		fmt.Printf("Error when converting trace: %s\n", err.Error())
+		return err
+	}
 	pathId, _ := s.CaculatePathId(ctx, root, 0)
-	s.ProcessGraph(ctx, root, errPath)
-	var err error
 	if !s.IsPathExist(ctx, pathId) {
-		session := s.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: config.Neo4jDatabase})
-		defer session.Close(ctx)
+		s.InsertEntityFromGraph(ctx, root, pathId)
+		s.InsertPath(ctx, root, pathId)
 
-		_, err = session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
-			for _, span := range trace {
-				// Create or merge the node for the current service and operation
-				query := `
-				MERGE (s:Service {name: $service})
-				MERGE (o:Operation {name: $operation, service: $service})
-				MERGE (s)-[:PERFORMS]->(o)
-			`
-				_, err := tx.Run(ctx, query, map[string]interface{}{
-					"service":   span.LocalEndpoint,
-					"operation": span.Name,
-				})
-				if err != nil {
-					return nil, err
-				}
-
-				// If the span has a parent, create a dependency edge
-				if span.ParentId != "" {
-					parentSpan := findParentSpan(trace, span.ParentId)
-					if parentSpan != nil {
-						query = `
-						MATCH (p:Operation {name: $parentOperation, service: $parentService})
-						MATCH (c:Operation {name: $childOperation, service: $childService})
-						MERGE (p)-[:CALLS {pathId: $pathId} ]->(c)
-					`
-						_, err = tx.Run(ctx, query, map[string]interface{}{
-							"parentOperation": parentSpan.Name,
-							"parentService":   parentSpan.LocalEndpoint,
-							"childOperation":  span.Name,
-							"childService":    span.LocalEndpoint,
-							"pathId":          pathId,
-						})
-						if err != nil {
-							return nil, err
-						}
-					}
-				}
-			}
-			return nil, nil
-		})
 		pathIds[pathId] = true
 		pathIdCollection.InsertOne(ctx, bson.M{"_id": pathId})
 	} else {
 		fmt.Printf("path %d already exists\n", pathId)
 	}
+	s.ProcessGraph(ctx, root, pathId)
 
 	for _, sr := range trace {
 		span := convertSrToSpan(sr)
-		span.PathId = pathId
+		span.PathID = pathId
 		spanCollection.InsertOne(ctx, span)
 	}
 
 	return err
 }
 
+func (s *Service) InsertPath(ctx context.Context, root *types.GraphNode, pathId uint32) {
+
+}
+
+// insert operation, hop
+func (s *Service) InsertEntityFromGraph(ctx context.Context, root *types.GraphNode, pathId uint32) {
+	if root == nil {
+		return
+	}
+	opID := generateOperationID(root.Span)
+	var op types.Operation
+	err := operationCollection.Find(ctx, bson.M{"_id": opID}).One(&op)
+	if err != nil {
+		if qmgo.IsErrNoDocuments(err) {
+			op = types.Operation{
+				ID:      opID,
+				Name:    root.Span.Name,
+				Service: root.Span.LocalEndpoint,
+			}
+			operationCollection.InsertOne(ctx, &op)
+		}
+	}
+
+	for _, child := range root.Children {
+		hopID := generateHopID(root, child, pathId)
+		var hop types.Hop
+		err := hopCollection.Find(ctx, bson.M{"_id": hopID}).One(&hop)
+		if err != nil {
+			if qmgo.IsErrNoDocuments(err) {
+				hop = types.Hop{
+					ID:              hopID,
+					PathID:          pathId,
+					CallerService:   root.Span.LocalEndpoint,
+					CallerOperation: root.Span.Name,
+					CalledService:   child.Span.LocalEndpoint,
+					CalledOperation: child.Span.Name,
+				}
+				hopCollection.InsertOne(ctx, &hop)
+			}
+		}
+		s.InsertEntityFromGraph(ctx, child, pathId)
+	}
+}
 func (s *Service) IsPathExist(ctx context.Context, pathId uint32) bool {
 	return pathIds[pathId]
 }
 func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 	var span types.Span
-	span.Id = sr.Id
-	span.TraceId = sr.TraceId
-	span.ServiceName = sr.LocalEndpoint
-	span.OperationName = sr.Name
+	span.ID = sr.Id
+	span.TraceID = sr.TraceId
+	span.Service = sr.LocalEndpoint
+	span.Operation = sr.Name
 	span.Timestamp = sr.Timestamp
 	span.Duration = sr.Duration
 	span.Error = sr.Tags["error"]
@@ -151,6 +158,10 @@ func findParentSpan(spans []*types.SpanResponse, parentID string) *types.SpanRes
 		}
 	}
 	return nil
+}
+
+func generateOperationID(sr *types.SpanResponse) string {
+	return strings.ToUpper(sr.LocalEndpoint + "_" + sr.Name)
 }
 
 func (s *Service) FetchTracesFromTo(ctx context.Context, from int64, to int64, limit int) ([][]*types.SpanResponse, error) {

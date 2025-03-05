@@ -10,8 +10,6 @@ import (
 	"github.com/qiniu/qmgo"
 	"kuroko.com/processor/internal/config"
 	"kuroko.com/processor/internal/service"
-
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 func main() {
@@ -22,21 +20,7 @@ func main() {
 	fmt.Println("Connected to MongoDB")
 	db := client.Database(config.MONGO_DATABASE)
 
-	ctx := context.Background()
-	driver, err := neo4j.NewDriverWithContext(
-		config.Neo4jURI,
-		neo4j.BasicAuth(config.Neo4jUsername, config.Neo4jPassword, ""))
-	if err != nil {
-		panic(err)
-	}
-	defer driver.Close(ctx)
-	err = driver.VerifyConnectivity(ctx)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Connected to Neo4j")
-
-	s := service.NewService(db, driver)
+	s := service.NewService(db)
 
 	// Create a channel to receive OS signals
 	signalChan := make(chan os.Signal, 1)
