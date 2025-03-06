@@ -45,6 +45,7 @@ type HttpLogEntry struct {
 	URIPath       string `json:"uri_path" bson:"uri_path"`
 	Referer       string `json:"referer" bson:"referer"`
 	UserId        string `json:"user_id" bson:"user_id"`
+	Username      string `json:"username" bson:"username"`
 	StartTime     int64  `json:"start_time" bson:"start_time"`
 	Method        string `json:"method" bson:"method"`
 	StartTimeDate string `json:"start_time_date" bson:"start_time_date"`

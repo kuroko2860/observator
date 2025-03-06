@@ -22,7 +22,7 @@ func (h *Handler) RegisterRoutes(v1 *echo.Group) {
 	v1.GET("/api-statistics/top-called", h.GetTopCalledApiHandler)
 	v1.GET("/http-api", h.GetHttpApiByServiceHandler)
 
-	v1.POST("/paths", h.GetAllPathFromHopHandler)
+	v1.POST("/paths", h.GetAllPathFromOperationsHandler)
 	v1.GET("/paths/:path_id", h.GetPathDetailByIdHandler)
 	v1.GET("/hop-detail", h.GetHopDetailByIdHandler)
 	v1.GET("/long-path", h.GetLongPathHandler)

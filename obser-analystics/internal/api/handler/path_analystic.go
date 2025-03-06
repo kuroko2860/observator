@@ -15,7 +15,7 @@ import (
 // @Success		200				{object}	[]model.PathResponse
 // @Failure		500				{object}	model.Error
 // @Router			/paths [post]
-func (h *Handler) GetAllPathFromHopHandler(c echo.Context) error {
+func (h *Handler) GetAllPathFromOperationsHandler(c echo.Context) error {
 	var req model.RequestPayload
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, model.ResultResponse{
@@ -24,19 +24,8 @@ func (h *Handler) GetAllPathFromHopHandler(c echo.Context) error {
 		})
 	}
 
-	// Extract unique operation names
-	operations := make([]string, 0)
-	operationMap := make(map[string]bool)
-
-	for _, pair := range req.Pairs {
-		if !operationMap[pair.Operation] {
-			operations = append(operations, pair.Operation)
-			operationMap[pair.Operation] = true
-		}
-	}
-
 	// Find paths between operations
-	paths, err := h.service.GetAllPathsFromOperations(c.Request().Context(), operations)
+	res, err := h.service.GetAllPathsFromOperations(c.Request().Context(), req.Pairs)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, model.ResultResponse{
 			Success: false,
@@ -46,7 +35,7 @@ func (h *Handler) GetAllPathFromHopHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, model.ResultResponse{
 		Success: true,
-		Paths:   paths,
+		Data:    res,
 	})
 
 }

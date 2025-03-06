@@ -14,6 +14,7 @@ import {
 } from "../component/shared/Input";
 import axios from "../config/axios";
 import useFetchData from "../hook/useFetchData";
+import ErrorBoundary from "../component/ErrorBoundary";
 
 function ApiCalled() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ function ApiCalled() {
     { sortable: false, name: "service_name", label: "Service Name" },
     { sortable: false, name: "uri_path", label: "URI Path" },
     { sortable: false, name: "method", label: "Method" },
-    { sortable: false, name: "caller", label: "Caller" },
+    { sortable: false, name: "username", label: "Caller" },
     { sortable: true, name: "count", label: "Count" },
     { sortable: true, name: "err-count", label: "Error Count" },
     { sortable: true, name: "err-rate", label: "Error Rate" },
@@ -64,11 +65,11 @@ function ApiCalled() {
 
   useEffect(() => {
     if (serviceName) {
-      methods.resetField("uri_path");
-      methods.resetField("method");
+      methods.setValue("uri_path", "");
+      methods.setValue("method", "");
       fetchEndpointsFromService(serviceName);
     }
-  }, [methods, serviceName]);
+  }, [serviceName]);
 
   const filterData = ({ service_name, uri_path, method }) => {
     return (
@@ -79,9 +80,8 @@ function ApiCalled() {
   };
   const transform = (data) => {
     return data
-      .map(({ api, caller, count, err_count }) => ({
+      .map(({ _id: api, count, err_count }) => ({
         ...api,
-        caller,
         count,
         err_count,
         err_rate: ((err_count / count) * 100).toFixed(2),
@@ -97,35 +97,37 @@ function ApiCalled() {
   };
 
   return (
-    <Box className="flex flex-col items-center p-4 gap-4 bg-white rounded-lg shadow-md">
-      <Typography variant="h5" className="text-2xl font-bold">
-        View called API by user
-      </Typography>
-      <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Grid2 container spacing={2} className="grid grid-cols-1 gap-4">
-            <TimeRangeInput />
-            <TextInput name="username" label="Username" />
-            <ServiceNameInput />
-            <EndpointInput endpoints={endpoints} />
-            <MethodInput />
+    <ErrorBoundary>
+      <Box className="flex flex-col items-center p-4 gap-4 bg-white rounded-lg shadow-md">
+        <Typography variant="h5" className="text-2xl font-bold">
+          View called API by user
+        </Typography>
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit)}>
+            <Grid2 container spacing={2} className="grid grid-cols-1 gap-4">
+              <TimeRangeInput />
+              <TextInput name="username" label="Username" />
+              <ServiceNameInput />
+              <EndpointInput endpoints={endpoints} />
+              <MethodInput />
 
-            <SubmitButtons />
-          </Grid2>
-        </form>
-      </FormProvider>
-      {loading && <CircularProgress className="mx-auto" />}
-      {error && <Typography className="text-red-500">{error}</Typography>}
-      {data && (
-        <CustomContainer className="overflow-x-auto">
-          <CustomTable
-            headings={headings}
-            data={transform(data)}
-            onRowClick={handleRowClick}
-          />
-        </CustomContainer>
-      )}
-    </Box>
+              <SubmitButtons />
+            </Grid2>
+          </form>
+        </FormProvider>
+        {loading && <CircularProgress className="mx-auto" />}
+        {error && <Typography className="text-red-500">{error}</Typography>}
+        {data && (
+          <CustomContainer className="overflow-x-auto">
+            <CustomTable
+              headings={headings}
+              data={transform(data)}
+              onRowClick={handleRowClick}
+            />
+          </CustomContainer>
+        )}
+      </Box>
+    </ErrorBoundary>
   );
 }
 

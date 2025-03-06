@@ -9,9 +9,20 @@ import (
 	"kuroko.com/analystics/internal/model"
 )
 
-func (s *Service) GetAllPathsFromOperations(ctx context.Context, operations []string) ([]model.PathResponse, error) {
+func (s *Service) GetAllPathsFromOperations(ctx context.Context, pairs []model.ServiceOperation) (*model.PathResponse, error) {
+	var paths []model.Path
+	var conditions []bson.M
+	for _, pair := range pairs {
+		conditions = append(conditions, bson.M{"operations": bson.M{"$elemMatch": bson.M{"service": pair.Service, "name": pair.Operation}}})
+	}
 
-	return nil, nil
+	filter := bson.M{"$and": conditions}
+
+	err := pathCollection.Find(ctx, filter).All(&paths)
+	if err != nil {
+		return nil, err
+	}
+	return &model.PathResponse{Paths: paths, TotalCount: len(paths)}, nil
 }
 
 func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, _to, unit string) (*model.PathDetail, error) {

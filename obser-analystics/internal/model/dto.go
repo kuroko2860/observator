@@ -73,26 +73,40 @@ type ServiceOperation struct {
 	Operation string `json:"operation"`
 }
 
-// RequestPayload represents the body of the request
 type RequestPayload struct {
 	Pairs []ServiceOperation `json:"pairs"`
 }
 
-// PathResponse represents a path in the graph
 type PathResponse struct {
-	Nodes []OperationNode `json:"nodes"`
-	Path  string          `json:"path"`
+	TotalCount int    `json:"total_count"`
+	Paths      []Path `json:"paths"`
 }
 
-// OperationNode represents an operation node from Neo4j
-type OperationNode struct {
-	Name    string `json:"name"`
-	Service string `json:"service"`
+type Path struct {
+	ID                string          `json:"id" bson:"_id"`
+	PathID            uint32          `json:"path_id" bson:"path_id"`
+	CreatedAt         int64           `json:"created_at" bson:"created_at"`
+	LongestChain      int             `json:"longest_chain" bson:"longest_chain"`
+	LongestErrorChain int             `json:"longest_error_chain" bson:"longest_error_chain"`
+	Operations        []PathOperation `json:"operations" bson:"operations"`
+	Hops              []PathHop       `json:"hops" bson:"hops"`
+}
+
+type PathOperation struct {
+	ID      string `json:"id" bson:"_id"`
+	Name    string `json:"name" bson:"name"`
+	Service string `json:"service" bson:"service"`
+}
+
+type PathHop struct {
+	ID     string `json:"id" bson:"_id"`
+	Source string `json:"source" bson:"source"`
+	Target string `json:"target" bson:"target"`
 }
 
 // ResultResponse is the API response structure
 type ResultResponse struct {
-	Success bool           `json:"success"`
-	Paths   []PathResponse `json:"paths"`
-	Error   string         `json:"error,omitempty"`
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
 }

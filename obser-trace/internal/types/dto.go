@@ -1,9 +1,9 @@
 package types
 
 type SpanResponse struct {
-	TraceId        string            `json:"traceId"`
-	Id             string            `json:"id"`
-	ParentId       string            `json:"parentId"`
+	TraceID        string            `json:"traceId"`
+	ID             string            `json:"id"`
+	ParentID       string            `json:"parentId"`
 	Kind           string            `json:"kind"`
 	LocalEndpoint  string            `json:"localEndpoint"`
 	RemoteEndpoint string            `json:"remoteEndpoint"`

@@ -49,9 +49,8 @@ const ApiLong = () => {
 
   const transform = (data) => {
     return data
-      .map(({ api, caller, count, avg_latency }) => ({
+      .map(({ _id: api, count, avg_latency }) => ({
         ...api,
-        caller,
         count,
         avg_latency,
       }))

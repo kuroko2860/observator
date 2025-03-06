@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
 	"kuroko.com/processor/internal/config"
@@ -95,7 +96,46 @@ func (s *Service) ProcessTrace(ctx context.Context, trace []*types.SpanResponse)
 }
 
 func (s *Service) InsertPath(ctx context.Context, root *types.GraphNode, pathId uint32) {
+	path := types.Path{
+		ID:                uuid.NewString(),
+		PathID:            pathId,
+		CreatedAt:         root.Span.Timestamp,
+		Operations:        []types.PathOperation{},
+		Hops:              []types.PathHop{},
+		LongestChain:      s.caculateLongestChain(ctx, root),
+		LongestErrorChain: s.caculateLongestErrorChain(ctx, root), // todo
+	}
 
+	nodeMap := make(map[string]types.PathOperation)
+	var processNode func(node *types.GraphNode)
+
+	processNode = func(node *types.GraphNode) {
+		id := strings.ToUpper(node.Span.LocalEndpoint + "_" + node.Span.Name)
+		if _, exists := nodeMap[id]; exists {
+			return
+		}
+
+		nodeOp := types.PathOperation{
+			ID:      id,
+			Name:    node.Span.Name,
+			Service: node.Span.LocalEndpoint,
+		}
+		nodeMap[id] = nodeOp
+		path.Operations = append(path.Operations, nodeOp)
+
+		for _, child := range node.Children {
+			hop := types.PathHop{
+				ID:     uuid.NewString(),
+				Source: id,
+				Target: strings.ToUpper(child.Span.LocalEndpoint + "_" + child.Span.Name),
+			}
+			path.Hops = append(path.Hops, hop)
+			processNode(child)
+		}
+	}
+
+	processNode(root)
+	pathCollection.InsertOne(ctx, &path)
 }
 
 // insert operation, hop
@@ -142,8 +182,8 @@ func (s *Service) IsPathExist(ctx context.Context, pathId uint32) bool {
 }
 func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 	var span types.Span
-	span.ID = sr.Id
-	span.TraceID = sr.TraceId
+	span.ID = sr.ID
+	span.TraceID = sr.TraceID
 	span.Service = sr.LocalEndpoint
 	span.Operation = sr.Name
 	span.Timestamp = sr.Timestamp
@@ -153,7 +193,7 @@ func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 }
 func findParentSpan(spans []*types.SpanResponse, parentID string) *types.SpanResponse {
 	for _, span := range spans {
-		if span.Id == parentID {
+		if span.ID == parentID {
 			return span
 		}
 	}

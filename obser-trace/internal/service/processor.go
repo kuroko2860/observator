@@ -15,7 +15,7 @@ func (s *Service) ProcessGraph(ctx context.Context, root *types.GraphNode, pathI
 	pathEvent := &types.PathEvent{
 		ID:        uuid.New().String(),
 		PathID:    pathId,
-		TraceID:   root.Span.TraceId,
+		TraceID:   root.Span.TraceID,
 		Timestamp: root.Span.Timestamp,
 	}
 	pathEventCollection.InsertOne(ctx, pathEvent)

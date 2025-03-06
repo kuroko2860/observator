@@ -12,7 +12,10 @@ import (
 
 func (s *Service) GetAllOperationsFromService(ctx context.Context, serviceName string) ([]string, error) {
 	var res []string
-
+	err := operationCollection.Find(ctx, bson.M{"service": serviceName}).Distinct("name", &res)
+	if err != nil {
+		return nil, err
+	}
 	return res, nil
 }
 
@@ -31,16 +34,20 @@ func (s *Service) GetAllOperationsCountFromService(ctx context.Context, serviceN
 		return nil, err
 	}
 	for _, span := range spans {
-		if _, ok := res[span.OperationName]; !ok {
-			res[span.OperationName] = 0
+		if _, ok := res[span.Operation]; !ok {
+			res[span.Operation] = 0
 		}
-		res[span.OperationName] += 1
+		res[span.Operation] += 1
 	}
 	return res, nil
 }
 
 func (s *Service) GetAllServices(ctx context.Context) ([]string, error) {
 	var res []string
+	err := operationCollection.Find(ctx, bson.M{}).Distinct("service", &res)
+	if err != nil {
+		return nil, err
+	}
 
 	return res, nil
 }
@@ -125,10 +132,10 @@ func (s *Service) GetTopCalledService(ctx context.Context, _from, _to, _limit st
 	}
 	var res = map[string]int{}
 	for _, span := range spans {
-		if _, ok := res[span.ServiceName]; !ok {
-			res[span.ServiceName] = 0
+		if _, ok := res[span.Service]; !ok {
+			res[span.Service] = 0
 		}
-		res[span.ServiceName] += 1
+		res[span.Service] += 1
 	}
 	// sort map by value
 	var keys []string

@@ -15,10 +15,10 @@ func (s *Service) GetAllTracesOfPath(ctx context.Context, pathId uint32) (map[st
 	}
 	res := make(map[string][]*model.Span)
 	for _, span := range spans {
-		if _, ok := res[span.TraceId]; !ok {
-			res[span.TraceId] = make([]*model.Span, 0)
+		if _, ok := res[span.TraceID]; !ok {
+			res[span.TraceID] = make([]*model.Span, 0)
 		}
-		res[span.TraceId] = append(res[span.TraceId], span)
+		res[span.TraceID] = append(res[span.TraceID], span)
 	}
 	return res, nil
 }

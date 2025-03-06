@@ -22,6 +22,7 @@ type HttpRequestLog struct {
 	// TraceId      string `json:"trace_id" bson:"trace_id"`
 	// PathId       uint32 `json:"path_id" bson:"path_id"`
 	UserId       string `json:"user_id" bson:"user_id"`
+	Username     string `json:"username" bson:"username"`
 	Referer      string `json:"referer" bson:"referer"`
 	UserAgent    string `json:"user_agent" bson:"user_agent"`
 	StartTime    int64  `json:"start_time" bson:"start_time"`
@@ -90,6 +91,7 @@ func generateHttpLog() *HttpRequestLog {
 		// TraceId:      faker.UUIDHyphenated(),
 		// PathId:       uint32(rand.Intn(1000)),
 		UserId:    faker.UUIDDigit(),
+		Username:  faker.Username(),
 		Referer:   "https://" + faker.DomainName() + "/ref",
 		UserAgent: userAgents[rand.Intn(len(userAgents))],
 

@@ -80,7 +80,6 @@ type PathEvent struct {
 	HasError  bool   `json:"has_error" bson:"has_error"`
 }
 
-type Path struct{}
 type HopEvent struct {
 	HopId               uint32
 	CalledOperationName string
@@ -91,14 +90,14 @@ type HopEvent struct {
 }
 
 type Span struct {
-	Id            string `json:"id" bson:"id"`
-	TraceId       string `json:"trace_id" bson:"trace_id"`
-	ServiceName   string `json:"service_name" bson:"service_name"`
-	OperationName string `json:"operation_name" bson:"operation_name"`
-	Timestamp     int64  `json:"timestamp" bson:"timestamp"`
-	Duration      int    `json:"duration" bson:"duration"`
-	Error         string `json:"error" bson:"error"`
-	PathId        uint32 `json:"path_id" bson:"path_id"`
+	ID        string `json:"id" bson:"_id"`
+	TraceID   string `json:"trace_id" bson:"trace_id"`
+	Service   string `json:"service" bson:"service"`
+	Operation string `json:"operation" bson:"operation"`
+	Timestamp int64  `json:"timestamp" bson:"timestamp"`
+	Duration  int    `json:"duration" bson:"duration"`
+	Error     string `json:"error" bson:"error"`
+	PathID    uint32 `json:"path_id" bson:"path_id"`
 }
 
 type AlertGetObject struct {
