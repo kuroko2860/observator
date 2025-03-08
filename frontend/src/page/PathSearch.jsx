@@ -2,8 +2,11 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import { getAllServices } from "../redux/services/selector";
 import axios from "../config/axios";
+import PathTree from "../component/PathTree";
+import { useNavigate } from "react-router-dom";
 
 const PathSearch = () => {
+  const navigate = useNavigate();
   const services = useSelector(getAllServices);
 
   const [operationsByService, setOperationsByService] = useState({});
@@ -114,10 +117,7 @@ const PathSearch = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("/paths", {
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pairs),
-      });
+      const response = await axios.post("/paths", { pairs: pairs });
       const data = await response.data;
 
       setResponse(data);
@@ -225,7 +225,15 @@ const PathSearch = () => {
         <div className="mt-8 p-4 border rounded-md bg-gray-50">
           <h2 className="text-xl font-bold mb-4">Response</h2>
           <pre className="bg-gray-100 p-4 rounded overflow-x-auto">
-            {JSON.stringify(response, null, 2)}
+            {response.data.paths?.map((path, index) => (
+              <div
+                key={index}
+                onClick={() => navigate(`/path-detail/${path.path_id}`)}
+              >
+                <h3 className="text-lg font-bold mb-2">Path {index + 1}</h3>
+                <PathTree path={path} />
+              </div>
+            ))}
           </pre>
         </div>
       )}

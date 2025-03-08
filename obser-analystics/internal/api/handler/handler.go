@@ -24,7 +24,7 @@ func (h *Handler) RegisterRoutes(v1 *echo.Group) {
 
 	v1.POST("/paths", h.GetAllPathFromOperationsHandler)
 	v1.GET("/paths/:path_id", h.GetPathDetailByIdHandler)
-	v1.GET("/hop-detail", h.GetHopDetailByIdHandler)
+	v1.GET("/hops/:hop_id", h.GetHopDetailByIdHandler)
 	v1.GET("/long-path", h.GetLongPathHandler)
 
 	v1.GET("/services/:service_name/operations", h.GetAllOperationsFromServiceHandler)

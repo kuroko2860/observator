@@ -31,9 +31,13 @@ func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, 
 	interval := ParseUnitToInterval(unit)
 
 	res := &model.PathDetail{}
-	pathInfo := &model.GraphData{PathId: int64(pathId)}
-
+	var pathInfo *model.Path
+	err := pathCollection.Find(ctx, bson.M{"path_id": pathId}).One(&pathInfo)
+	if err != nil {
+		return nil, err
+	}
 	res.PathInfo = pathInfo
+
 	filter := bson.M{
 		"path_id": pathId,
 		"timestamp": bson.M{
@@ -42,7 +46,7 @@ func (s *Service) GetPathDetailById(ctx context.Context, _pathId string, _from, 
 		},
 	}
 	var pathEvents []*model.PathEvent
-	err := pathEventCollection.Find(ctx, filter).All(&pathEvents)
+	err = pathEventCollection.Find(ctx, filter).All(&pathEvents)
 	if err != nil {
 		return nil, err
 	}
@@ -76,31 +80,27 @@ func buildPathEventDistribution(pathEvents []*model.PathEvent, from, to, interva
 	return count, errCount, pathDist, errDist
 }
 
-func (s *Service) GetHopDetailById(ctx context.Context, callerSvc, callerOp, calledSvc, calledOp, _from, _to, unit string) (*model.HopDetail, error) {
+func (s *Service) GetHopDetailById(ctx context.Context, hopID, _from, _to, unit string) (*model.HopDetail, error) {
 	from, to := ParseFromToStringToInt(_from, _to)
 	interval := ParseUnitToInterval(unit)
 
 	res := &model.HopDetail{}
-	var hopInfo = &model.Hop{
-		CallerServiceName:   callerSvc,
-		CalledServiceName:   calledSvc,
-		CallerOperationName: callerOp,
-		CalledOperationName: calledOp,
+	var hopInfo *model.Hop
+	err := hopCollection.Find(ctx, bson.M{"_id": hopID}).One(&hopInfo)
+	if err != nil {
+		return nil, err
 	}
 	res.HopInfo = hopInfo
 
 	filter := bson.M{
-		"caller_service":   callerSvc,
-		"caller_operation": callerOp,
-		"called_service":   calledSvc,
-		"called_operation": calledOp,
+		"hop_id": hopID,
 		"timestamp": bson.M{
 			"$gte": from,
 			"$lte": to,
 		},
 	}
 	var hopEvents []*model.HopEvent
-	err := hopEventCollection.Find(ctx, filter).All(&hopEvents)
+	err = hopEventCollection.Find(ctx, filter).All(&hopEvents)
 	if err != nil {
 		return nil, err
 	}

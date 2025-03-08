@@ -1,40 +1,8 @@
-import { useState } from "react";
-import dayjs from "dayjs";
-import { Container, Box } from "@mui/material";
-import HopDetails from "./HopDetail";
+import { Box, Container } from "@mui/material";
 import CytoscapeComponent from "react-cytoscapejs";
 
-const PathTree = ({ pathTree, from, to, unit }) => {
-  const treeData = transformTreeData(pathTree);
-  const [showHopDetail, setShowHopDetail] = useState(false);
-  const [params, setParams] = useState();
-  const handleLinkClick = (event, cy) => {
-    const edge = event.target;
-    const sourceId = edge.data("source");
-    const targetId = edge.data("target");
-
-    // Find the source and target nodes
-    const source = cy.getElementById(sourceId);
-    const target = cy.getElementById(targetId);
-
-    // Get labels from nodes
-    const callerOp = source.data("name");
-    const callerSvc = source.data("service");
-    const calledOp = target.data("name");
-    const calledSvc = target.data("service");
-
-    const params = {
-      from: from?.$d.getTime() || dayjs().startOf("day").valueOf(),
-      to: to?.$d.getTime() || dayjs().startOf("day").add(1, "day").valueOf(),
-      unit: unit || "hour",
-      caller_svc: callerSvc,
-      caller_op: callerOp,
-      called_svc: calledSvc,
-      called_op: calledOp,
-    };
-    setShowHopDetail(true);
-    setParams(params);
-  };
+const PathTree = ({ path, handleLinkClick = () => {} }) => {
+  const treeData = transformTreeData(path);
 
   return (
     <Container className="h-full flex flex-col">
@@ -76,40 +44,22 @@ const PathTree = ({ pathTree, from, to, unit }) => {
           cytoscapeConfig={{ wheelSensitivity: 0.1 }}
           style={{ width: "100%", height: "600px", border: "1px solid black" }}
           layout={{ name: "breadthfirst" }}
-          cy={(cy) =>
-            cy.on("tap", "edge", (event) => handleLinkClick(event, cy))
-          }
+          cy={(cy) => cy.on("tap", "edge", (event) => handleLinkClick(event))}
         />
       </Box>
-      {showHopDetail && (
-        <HopDetails
-          params={params}
-          setShowHopDetail={setShowHopDetail}
-          unit={unit}
-          className="mt-4"
-        />
-      )}
     </Container>
   );
 };
-const transformTreeData = (pathTree) => {
+const transformTreeData = (path) => {
   const res = [
-    ...pathTree.nodes.map((node) => {
+    ...path.operations.map((node) => {
       return {
-        data: {
-          id: node.id,
-          name: node.operation,
-          service: node.service,
-        },
+        data: node,
       };
     }),
-    ...pathTree.edges.map((edge) => {
+    ...path.hops.map((edge) => {
       return {
-        data: {
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-        },
+        data: edge,
       };
     }),
   ];

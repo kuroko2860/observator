@@ -9,6 +9,7 @@ import {
   AccordionDetails,
   AccordionSummary,
 } from "@mui/material";
+import { useState } from "react";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
 import { TimeRangeInput, TimeUnitInput } from "../component/shared/Input";
 import { SubmitButtons } from "../component/shared/Common";
@@ -19,8 +20,10 @@ import PathTree from "../component/PathTree";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import { BarChart } from "@mui/x-charts";
+import HopDetails from "../component/HopDetail";
 const PathDetail = () => {
   const { path_id } = useParams();
+  const [hopID, setHopID] = useState(null);
   const { data, loading, error, fetchData } = useFetchData(`/paths/${path_id}`);
   const methods = useForm({
     defaultValues: {
@@ -37,6 +40,24 @@ const PathDetail = () => {
         data.to?.$d.getTime() || dayjs().startOf("day").add(1, "day").valueOf(),
     };
     await fetchData(params);
+  };
+
+  const [showHopDetail, setShowHopDetail] = useState(false);
+  const [params, setParams] = useState();
+  const handleLinkClick = (event) => {
+    const edge = event.target;
+    const sourceId = edge.data("source");
+    const targetId = edge.data("target");
+    setHopID(`${sourceId}_${targetId}_${path_id}`);
+
+    const params = {
+      from: data.from?.$d.getTime() || dayjs().startOf("day").valueOf(),
+      to:
+        data.to?.$d.getTime() || dayjs().startOf("day").add(1, "day").valueOf(),
+      unit: methods.getValues("unit"),
+    };
+    setShowHopDetail(true);
+    setParams(params);
   };
 
   return (
@@ -59,15 +80,28 @@ const PathDetail = () => {
         <Box className="space-y-4">
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
+              <Typography>View path call tree</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <CustomContainer>
+                <PathTree
+                  path={data.path_info}
+                  handleLinkClick={handleLinkClick}
+                />
+              </CustomContainer>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
               <Typography>View path statistics</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <CustomContainer>
                 <Grid2 container spacing={2}>
-                  <StatCard title={"Count"} value={data.Count} unit="calls" />
+                  <StatCard title={"Count"} value={data.count} unit="calls" />
                   <StatCard
                     title={"Frequency"}
-                    value={data.Frequency}
+                    value={data.frequency}
                     unit={`calls/${methods.getValues("unit")}`}
                   />
                   <BarChartCard
@@ -80,7 +114,7 @@ const PathDetail = () => {
                       xAxis={[
                         {
                           scaleType: "band",
-                          data: Object.keys(data.Distribution || {}).map(
+                          data: Object.keys(data.distribution || {}).map(
                             (key) => new Date(parseInt(key)).toLocaleString()
                           ),
                           label: "Timestamp",
@@ -90,7 +124,7 @@ const PathDetail = () => {
                       ]}
                       series={[
                         {
-                          data: Object.values(data.Distribution || {}),
+                          data: Object.values(data.distribution || {}),
                           label: "Count",
                         },
                       ]}
@@ -109,12 +143,12 @@ const PathDetail = () => {
                 <Grid2 container spacing={2}>
                   <StatCard
                     title={"Count"}
-                    value={data.ErrorCount}
+                    value={data.error_count}
                     unit="errors"
                   />
                   <StatCard
                     title={"Error rate"}
-                    value={data.ErrorRate * 100}
+                    value={data.error_rate * 100}
                     unit="%"
                   />
                   <BarChartCard
@@ -127,7 +161,7 @@ const PathDetail = () => {
                       xAxis={[
                         {
                           scaleType: "band",
-                          data: Object.keys(data.ErrorDist || {}).map((key) =>
+                          data: Object.keys(data.error_dist || {}).map((key) =>
                             new Date(parseInt(key)).toLocaleString()
                           ),
                           label: "Timestamp",
@@ -137,7 +171,7 @@ const PathDetail = () => {
                       ]}
                       series={[
                         {
-                          data: Object.values(data.ErrorDist || {}),
+                          data: Object.values(data.error_dist || {}),
                           label: "Count",
                         },
                       ]}
@@ -147,21 +181,15 @@ const PathDetail = () => {
               </CustomContainer>
             </AccordionDetails>
           </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-              <Typography>View path call tree</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <CustomContainer>
-                <PathTree
-                  pathTree={data.PathInfo}
-                  from={methods.getValues("from")}
-                  to={methods.getValues("to")}
-                  unit={methods.getValues("unit")}
-                />
-              </CustomContainer>
-            </AccordionDetails>
-          </Accordion>
+          {showHopDetail && (
+            <HopDetails
+              hopID={hopID}
+              params={params}
+              setShowHopDetail={setShowHopDetail}
+              unit={data.unit}
+              className="mt-4"
+            />
+          )}
         </Box>
       )}
     </Box>

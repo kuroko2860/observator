@@ -26,6 +26,7 @@ type PathEvent struct {
 
 type HopEvent struct {
 	ID        string `json:"id" bson:"_id"`
+	HopID     string `json:"hop_id" bson:"hop_id"`
 	Timestamp int64  `json:"timestamp" bson:"timestamp"`
 	Duration  int    `json:"duration" bson:"duration"`
 	HasError  bool   `json:"has_error" bson:"has_error"`

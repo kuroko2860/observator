@@ -18,8 +18,8 @@ import StatCard from "./shared/StatCard";
 import BarChartCard from "./shared/BarChartCard";
 import { BarChart } from "@mui/x-charts";
 
-const HopDetails = ({ params, setShowHopDetail, unit }) => {
-  const { data, loading, error, fetchData } = useFetchData("/hop-detail");
+const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
+  const { data, loading, error, fetchData } = useFetchData(`/hops/${hopID}`);
   useEffect(() => {
     fetchData(params);
   }, [params]);

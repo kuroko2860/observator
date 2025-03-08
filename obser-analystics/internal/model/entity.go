@@ -44,12 +44,11 @@ type ServiceObject struct {
 }
 
 type Hop struct {
-	Id                  uint32
-	PathId              uint32
-	CallerServiceName   string
-	CallerOperationName string
-	CalledServiceName   string
-	CalledOperationName string
+	ID              string `json:"id" bson:"_id"`
+	CallerService   string `json:"caller_service" bson:"caller_service"`
+	CallerOperation string `json:"caller_operation" bson:"caller_operation"`
+	CalledService   string `json:"called_service" bson:"called_service"`
+	CalledOperation string `json:"called_operation" bson:"called_operation"`
 }
 
 type LogMiddlewareEvent struct {

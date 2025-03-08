@@ -35,14 +35,14 @@ type CalledApiResponse struct {
 	Count int
 }
 type HopDetail struct {
-	HopInfo      *Hop
-	Count        int
-	Frequency    float32
-	Distribution map[int64]int
-	ErrorCount   int
-	ErrorRate    float32
-	ErrorDist    map[int64]int  // err code with count
-	Latency      map[string]int // max min p50 p99
+	HopInfo      *Hop           `json:"hop_info"`
+	Count        int            `json:"count"`
+	Frequency    float32        `json:"frequency"`
+	Distribution map[int64]int  `json:"distribution"`
+	ErrorCount   int            `json:"error_count"`
+	ErrorRate    float32        `json:"error_rate"`
+	ErrorDist    map[int64]int  `json:"error_dist"`
+	Latency      map[string]int `json:"latency"`
 }
 
 type ServiceDetail struct {
@@ -50,13 +50,13 @@ type ServiceDetail struct {
 	HttpApi    any `json:"http_api"`
 }
 type PathDetail struct {
-	PathInfo     *GraphData
-	Count        int
-	Frequency    float32
-	Distribution map[int64]int
-	ErrorCount   int
-	ErrorRate    float32
-	ErrorDist    map[int64]int
+	PathInfo     *Path         `json:"path_info"`
+	Count        int           `json:"count"`
+	Frequency    float32       `json:"frequency"`
+	Distribution map[int64]int `json:"distribution"`
+	ErrorCount   int           `json:"error_count"`
+	ErrorRate    float32       `json:"error_rate"`
+	ErrorDist    map[int64]int `json:"error_dist"`
 }
 
 type GroupResult struct {

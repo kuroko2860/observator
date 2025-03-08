@@ -71,26 +71,20 @@ func (h *Handler) GetPathDetailByIdHandler(c echo.Context) error {
 // @Tags			hop
 // @Accept			json
 // @Produce		json
-// @Param			caller_service	query		string	true	"Caller Service"
-// @Param			caller_operation	query		string	true	"Caller Operation"
-// @Param			called_service	query		string	true	"Called Service"
-// @Param			called_operation	query		string	true	"Called Operation"
+// @Param			hop_id			param		string	true	"Hop Id"
 // @Param			from				query		string	true	"From"
 // @Param			to				query		string	true	"To"
 // @Param			unit				query		string	true	"Unit"
 // @Success		200				{object}	model.HopDetail
 // @Failure		500				{object}	model.Error
-// @Router			/hop-detail [get]
+// @Router			/hops/:hop_id [get]
 func (h *Handler) GetHopDetailByIdHandler(c echo.Context) error {
-	callerSvc := c.QueryParam("caller_service")
-	callerOp := c.QueryParam("caller_operation")
-	calledSvc := c.QueryParam("called_service")
-	calledOp := c.QueryParam("called_operation")
+	hopID := c.Param("hop_id")
 	from := c.QueryParam("from")
 	to := c.QueryParam("to")
 	unit := c.QueryParam("unit")
 
-	res, err := h.service.GetHopDetailById(c.Request().Context(), callerSvc, callerOp, calledSvc, calledOp, from, to, unit)
+	res, err := h.service.GetHopDetailById(c.Request().Context(), hopID, from, to, unit)
 	if err != nil {
 		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
 	}

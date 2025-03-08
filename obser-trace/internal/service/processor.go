@@ -26,6 +26,7 @@ func (s *Service) ProcessGraph(ctx context.Context, root *types.GraphNode, pathI
 		},
 		Children: make([]*types.GraphNode, 0),
 	}
+	newRoot.Children = append(newRoot.Children, root)
 	s.dfs(ctx, newRoot, pathId)
 }
 
@@ -65,7 +66,8 @@ func (s *Service) dfs(ctx context.Context, root *types.GraphNode, pathId uint32)
 			}
 		}
 		hopEvent := &types.HopEvent{
-			ID:        uuid.New().String(),
+			ID:        uuid.NewString(),
+			HopID:     hopID,
 			Timestamp: child.Span.Timestamp / 1000, // to milisecond
 			Duration:  child.Span.Duration,
 			HasError:  s.isSpanError(child.Span),
