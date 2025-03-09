@@ -6,10 +6,10 @@ type Time struct {
 }
 
 type Span struct {
-	ID      string `json:"id" bson:"_id"`
-	PathID  uint32 `json:"path_id" bson:"path_id"`
-	TraceID string `json:"trace_id" bson:"trace_id"`
-
+	ID        string `json:"id" bson:"_id"`
+	PathID    uint32 `json:"path_id" bson:"path_id"`
+	TraceID   string `json:"trace_id" bson:"trace_id"`
+	ParentID  string `json:"parent_id" bson:"parent_id"`
 	Service   string `json:"service" bson:"service"`
 	Operation string `json:"operation" bson:"operation"`
 	Timestamp int64  `json:"timestamp" bson:"timestamp"`

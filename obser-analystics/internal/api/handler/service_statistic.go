@@ -36,18 +36,18 @@ func (h *Handler) GetAllOperationsFromServiceHandler(c echo.Context) error {
 // @Success		200				{object}	[]string
 // @Failure		500				{object}	model.Error
 // @Router			/operations-count [get]
-func (h *Handler) GetAllOperationsCountFromServiceHandler(c echo.Context) error {
-	serviceName := c.QueryParam("service_name")
-	from := c.QueryParam("from")
-	to := c.QueryParam("to")
+// func (h *Handler) GetAllOperationsCountFromServiceHandler(c echo.Context) error {
+// 	serviceName := c.QueryParam("service_name")
+// 	from := c.QueryParam("from")
+// 	to := c.QueryParam("to")
 
-	res, err := h.service.GetAllOperationsCountFromService(c.Request().Context(), serviceName, from, to)
-	if err != nil {
-		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
-	}
+// 	res, err := h.service.GetAllOperationsCountFromService(c.Request().Context(), serviceName, from, to)
+// 	if err != nil {
+// 		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
+// 	}
 
-	return c.JSON(200, res)
-}
+// 	return c.JSON(200, res)
+// }
 
 // @Summary		Get All Services
 // @Description	Get All Services
@@ -101,18 +101,18 @@ func (h *Handler) GetServiceDetailHandler(c echo.Context) error {
 // @Success		200				{object}	any
 // @Failure		500				{object}	model.Error
 // @Router			/http-service-api [get]
-func (h *Handler) GetHttpServiceApiHandler(c echo.Context) error {
-	serviceName := c.QueryParam("service_name")
-	from := c.QueryParam("from")
-	to := c.QueryParam("to")
+// func (h *Handler) GetHttpServiceApiHandler(c echo.Context) error {
+// 	serviceName := c.QueryParam("service_name")
+// 	from := c.QueryParam("from")
+// 	to := c.QueryParam("to")
 
-	res, err := h.service.GetHttpServiceApiService(c.Request().Context(), serviceName, from, to)
-	if err != nil {
-		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
-	}
+// 	res, err := h.service.GetHttpServiceApiService(c.Request().Context(), serviceName, from, to)
+// 	if err != nil {
+// 		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
+// 	}
 
-	return c.JSON(200, res)
-}
+// 	return c.JSON(200, res)
+// }
 
 // @Summary		Get Service Endpoint
 // @Description	Get Service Endpoint

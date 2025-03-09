@@ -126,18 +126,18 @@ func (h *Handler) GetTopCalledApiHandler(c echo.Context) error {
 // @Success		200				{object}	[]any
 // @Failure		500				{object}	model.Error
 // @Router			/http-api [get]
-func (h *Handler) GetHttpApiByServiceHandler(c echo.Context) error {
-	from := c.QueryParam("from")
-	to := c.QueryParam("to")
-	serviceName := c.QueryParam("service_name")
+// func (h *Handler) GetHttpApiByServiceHandler(c echo.Context) error {
+// 	from := c.QueryParam("from")
+// 	to := c.QueryParam("to")
+// 	serviceName := c.QueryParam("service_name")
 
-	res, err := h.service.GetHttpApiByService(c.Request().Context(), from, to, serviceName)
-	if err != nil {
-		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
-	}
+// 	res, err := h.service.GetHttpApiByService(c.Request().Context(), from, to, serviceName)
+// 	if err != nil {
+// 		return c.JSON(500, model.Error{Message: err.Error(), Code: 500})
+// 	}
 
-	return c.JSON(200, res)
-}
+// 	return c.JSON(200, res)
+// }
 
 // @Summary		Get Alert
 // @Description	Get Alert

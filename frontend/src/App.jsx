@@ -17,6 +17,7 @@ import TopService from "./page/TopService";
 import PathSearch from "./page/PathSearch";
 import PathDetail from "./page/PathDetail";
 import NotFound from "./page/NotFound";
+import TraceDetail from "./page/TraceDetail";
 
 function App() {
   const dispatch = useDispatch();
@@ -54,6 +55,7 @@ function App() {
           {/* <Route path="long-path" element={<LongPath />} /> */}
           <Route path="search-path" element={<PathSearch />} />
           <Route path="path-detail/:path_id" element={<PathDetail />} />
+          <Route path="trace-detail/:id" element={<TraceDetail />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

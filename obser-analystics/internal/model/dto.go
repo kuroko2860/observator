@@ -110,3 +110,16 @@ type ResultResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
 }
+
+type TraceSummaryResponse struct {
+	RootService   string `json:"root_service"`
+	RootOperation string `json:"root_operation"`
+	TraceId       string `json:"trace_id"`
+	StartTime     int64  `json:"start_time"`
+	SpanNum       int    `json:"span_num"`
+	Duration      int    `json:"duration"`
+}
+type TraceResponse struct {
+	Spans []*Span `json:"spans"`
+	Path  *Path   `json:"path"`
+}

@@ -189,15 +189,8 @@ func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 	span.Timestamp = sr.Timestamp
 	span.Duration = sr.Duration
 	span.Error = sr.Tags["error"]
+	span.ParentID = sr.ParentID
 	return &span
-}
-func findParentSpan(spans []*types.SpanResponse, parentID string) *types.SpanResponse {
-	for _, span := range spans {
-		if span.ID == parentID {
-			return span
-		}
-	}
-	return nil
 }
 
 func generateOperationID(sr *types.SpanResponse) string {
