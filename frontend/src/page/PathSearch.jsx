@@ -9,47 +9,31 @@ const PathSearch = () => {
   const navigate = useNavigate();
   const services = useSelector(getAllServices);
 
+  // State management
   const [operationsByService, setOperationsByService] = useState({});
-
   const [loadingOperations, setLoadingOperations] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [response, setResponse] = useState(null);
-
-  // Service-operation pairs
   const [pairs, setPairs] = useState([
     { id: 1, service: "AWS", operation: "" },
   ]);
 
-  // Fetch operations for a service
   const fetchOperations = async (service) => {
-    if (operationsByService[service]) {
-      return; // Already fetched
-    }
+    if (operationsByService[service]) return;
 
     setLoadingOperations((prev) => ({ ...prev, [service]: true }));
 
     try {
-      const response = await axios.get(`/services/${service}/operations`);
-      const operations = await response.data;
+      const { data: operations } = await axios.get(
+        `/services/${service}/operations`
+      );
 
       setOperationsByService((prev) => ({
         ...prev,
         [service]: operations,
       }));
 
-      // Update pairs that use this service to have the first operation if they don't have one set
-      setPairs((currentPairs) =>
-        currentPairs.map((pair) => {
-          if (
-            pair.service === service &&
-            (!pair.operation || !operations.includes(pair.operation))
-          ) {
-            return { ...pair, operation: operations[0] };
-          }
-          return pair;
-        })
-      );
+      updatePairsWithNewOperation(service, operations);
     } catch (error) {
       console.error(`Error fetching operations for ${service}:`, error);
     } finally {
@@ -57,7 +41,17 @@ const PathSearch = () => {
     }
   };
 
-  // Add a new pair
+  const updatePairsWithNewOperation = (service, operations) => {
+    setPairs((currentPairs) =>
+      currentPairs.map((pair) =>
+        pair.service === service &&
+        (!pair.operation || !operations.includes(pair.operation))
+          ? { ...pair, operation: operations[0] }
+          : pair
+      )
+    );
+  };
+
   const addPair = () => {
     const newId =
       pairs.length > 0 ? Math.max(...pairs.map((p) => p.id)) + 1 : 1;
@@ -73,53 +67,40 @@ const PathSearch = () => {
     ]);
   };
 
-  // Remove a pair
   const removePair = (id) => {
     setPairs(pairs.filter((pair) => pair.id !== id));
   };
 
-  // Update service selection and fetch operations if needed
   const updateService = (id, service) => {
-    // Fetch operations for this service if not already loaded
     if (!operationsByService[service]) {
       fetchOperations(service);
     }
 
     setPairs(
-      pairs.map((pair) => {
-        if (pair.id === id) {
-          return {
-            ...pair,
-            service,
-            operation: operationsByService[service]?.[0] || "",
-          };
-        }
-        return pair;
-      })
+      pairs.map((pair) =>
+        pair.id === id
+          ? {
+              ...pair,
+              service,
+              operation: operationsByService[service]?.[0] || "",
+            }
+          : pair
+      )
     );
   };
 
-  // Update operation selection
   const updateOperation = (id, operation) => {
     setPairs(
-      pairs.map((pair) => {
-        if (pair.id === id) {
-          return { ...pair, operation };
-        }
-        return pair;
-      })
+      pairs.map((pair) => (pair.id === id ? { ...pair, operation } : pair))
     );
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("/paths", { pairs: pairs });
-      const data = await response.data;
-
+      const { data } = await axios.post("/paths", { pairs });
       setResponse(data);
     } catch (error) {
       console.error("Error submitting data:", error);
@@ -132,10 +113,52 @@ const PathSearch = () => {
     }
   };
 
-  // Check if all pairs have valid operations
   const allPairsValid = pairs.every(
     (pair) =>
       pair.service && pair.operation && operationsByService[pair.service]
+  );
+
+  const renderServiceSelect = (pair) => (
+    <div className="w-1/3">
+      <label className="block text-sm font-medium mb-1">Service</label>
+      <select
+        className="w-full rounded-md border border-gray-300 p-2"
+        value={pair.service}
+        onChange={(e) => updateService(pair.id, e.target.value)}
+      >
+        {services.map((service) => (
+          <option key={service} value={service}>
+            {service}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const renderOperationSelect = (pair) => (
+    <div className="w-1/3">
+      <label className="block text-sm font-medium mb-1">Operation</label>
+      <select
+        className="w-full rounded-md border border-gray-300 p-2"
+        value={pair.operation}
+        onChange={(e) => updateOperation(pair.id, e.target.value)}
+        disabled={
+          loadingOperations[pair.service] || !operationsByService[pair.service]
+        }
+      >
+        {loadingOperations[pair.service] ? (
+          <option>Loading operations...</option>
+        ) : operationsByService[pair.service] ? (
+          operationsByService[pair.service].map((operation) => (
+            <option key={operation} value={operation}>
+              {operation}
+            </option>
+          ))
+        ) : (
+          <option>Select a service first</option>
+        )}
+      </select>
+    </div>
   );
 
   return (
@@ -147,48 +170,8 @@ const PathSearch = () => {
       <form onSubmit={handleSubmit}>
         {pairs.map((pair) => (
           <div key={pair.id} className="flex items-center gap-4 mb-4">
-            <div className="w-1/3">
-              <label className="block text-sm font-medium mb-1">Service</label>
-              <select
-                className="w-full rounded-md border border-gray-300 p-2"
-                value={pair.service}
-                onChange={(e) => updateService(pair.id, e.target.value)}
-              >
-                {services.map((service) => (
-                  <option key={service} value={service}>
-                    {service}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="w-1/3">
-              <label className="block text-sm font-medium mb-1">
-                Operation
-              </label>
-              <select
-                className="w-full rounded-md border border-gray-300 p-2"
-                value={pair.operation}
-                onChange={(e) => updateOperation(pair.id, e.target.value)}
-                disabled={
-                  loadingOperations[pair.service] ||
-                  !operationsByService[pair.service]
-                }
-              >
-                {loadingOperations[pair.service] ? (
-                  <option>Loading operations...</option>
-                ) : operationsByService[pair.service] ? (
-                  operationsByService[pair.service].map((operation) => (
-                    <option key={operation} value={operation}>
-                      {operation}
-                    </option>
-                  ))
-                ) : (
-                  <option>Select a service first</option>
-                )}
-              </select>
-            </div>
-
+            {renderServiceSelect(pair)}
+            {renderOperationSelect(pair)}
             <div className="flex items-end">
               <button
                 type="button"

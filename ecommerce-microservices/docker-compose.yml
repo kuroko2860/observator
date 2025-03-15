@@ -1,0 +1,111 @@
+version: "3"
+
+services:
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+
+  checkout:
+    build:
+      context: .
+      dockerfile: checkout/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - zipkin
+      - order
+    environment:
+      - ORDER_URL=http://order:8081
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    command:
+      [
+        "./checkout-service",
+        "-http.addr=:8080",
+        "-order.url=http://order:8081",
+        "-zipkin.url=http://zipkin:9411/api/v2/spans",
+      ]
+
+  order:
+    build:
+      context: .
+      dockerfile: order/Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - zipkin
+      - payment
+      - inventory
+      - address
+    environment:
+      - PAYMENT_URL=http://payment:8082
+      - INVENTORY_URL=inventory:8083
+      - ADDRESS_URL=http://address:8084
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    command:
+      [
+        "./order-service",
+        "-http.addr=:8081",
+        "-payment.url=http://payment:8082",
+        "-inventory.url=inventory:8083",
+        "-address.url=http://address:8084",
+        "-zipkin.url=http://zipkin:9411/api/v2/spans",
+      ]
+
+  payment:
+    build:
+      context: .
+      dockerfile: payment/Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      - zipkin
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    command:
+      [
+        "./payment-service",
+        "-http.addr=:8082",
+        "-zipkin.url=http://zipkin:9411/api/v2/spans",
+      ]
+
+  inventory:
+    build:
+      context: .
+      dockerfile: inventory/Dockerfile
+    ports:
+      - "8083:8083"
+    depends_on:
+      - zipkin
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    command:
+      [
+        "./inventory-service",
+        "-grpc.addr=:8083",
+        "-zipkin.url=http://zipkin:9411/api/v2/spans",
+      ]
+
+  address:
+    build:
+      context: .
+      dockerfile: address/Dockerfile
+    ports:
+      - "8084:8084"
+    depends_on:
+      - zipkin
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    command:
+      [
+        "./address-service",
+        "-http.addr=:8084",
+        "-zipkin.url=http://zipkin:9411/api/v2/spans",
+      ]
+
+nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["--jetstream"]

@@ -28,7 +28,7 @@ func (s *Service) GetAllOperationsCountFromService(ctx context.Context, serviceN
 			"$gte": from,
 			"$lte": to,
 		},
-		"service_name": serviceName,
+		"service": serviceName,
 	}).All(&spans)
 	if err != nil {
 		return nil, err

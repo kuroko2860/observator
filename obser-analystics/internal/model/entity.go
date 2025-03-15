@@ -74,18 +74,18 @@ type LogMiddlewareEvent struct {
 }
 
 type PathEvent struct {
-	PathId    uint32 `json:"path_id" bson:"path_id"`
+	PathID    uint32 `json:"path_id" bson:"path_id"`
+	TraceID   string `json:"trace_id" bson:"trace_id"`
 	Timestamp int64  `json:"timestamp" bson:"timestamp"`
 	HasError  bool   `json:"has_error" bson:"has_error"`
 }
 
 type HopEvent struct {
-	HopId               uint32
-	CalledOperationName string
-	CalledServiceName   string
-	Timestamp           int64
-	Duration            int
-	HasError            bool
+	ID        string `json:"id" bson:"_id"`
+	HopID     string `json:"hop_id" bson:"hop_id"`
+	Timestamp int64  `json:"timestamp" bson:"timestamp"`
+	Duration  int    `json:"duration" bson:"duration"`
+	HasError  bool   `json:"has_error" bson:"has_error"`
 }
 
 type Span struct {

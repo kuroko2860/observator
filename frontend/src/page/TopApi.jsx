@@ -19,18 +19,32 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Constants
+const SORT_ORDERS = {
+  COUNT: "count",
+  ERROR_COUNT: "err-count",
+  ERROR_RATE: "err-rate",
+};
+
+const DEFAULT_LIMIT = 10;
+
+// Main component
 function TopApi() {
   const topApiFetcher = useFetchData("/api-statistics/top-called");
 
   const onSubmit = async (data) => {
-    topApiFetcher.fetchData({
+    const currentDate = dayjs();
+    const requestData = {
       ...data,
-      limit: 10,
-      from: data.from?.$d.getTime() || dayjs().startOf("day").valueOf(),
+      limit: DEFAULT_LIMIT,
+      from: data.from?.$d.getTime() || currentDate.startOf("day").valueOf(),
       to:
-        data.to?.$d.getTime() || dayjs().startOf("day").add(1, "day").valueOf(),
-    });
+        data.to?.$d.getTime() ||
+        currentDate.startOf("day").add(1, "day").valueOf(),
+    };
+    topApiFetcher.fetchData(requestData);
   };
+
   return (
     <Container className="flex flex-col gap-4 p-6 bg-white shadow-lg rounded-lg">
       <Typography variant="h5" className="text-gray-900">
@@ -48,40 +62,50 @@ function TopApi() {
   );
 }
 
+// Table component
 const TopApiCalledTable = ({ data }) => {
   const [order, setOrder] = useState("desc");
-  const [orderBy, setOrderBy] = useState("count");
-  const getComparator = () => {
-    if (orderBy === "count") {
-      return (a, b) => (a.count - b.count) * (order === "desc" ? -1 : 1);
-    }
-    if (orderBy === "err-count") {
-      return (a, b) =>
-        (a["err_count"] - b["err_count"]) * (order === "desc" ? -1 : 1);
-    }
-    if (orderBy === "err-rate") {
-      return (a, b) =>
-        (((a.err_count / a.count) * 100).toFixed(2) -
-          ((b.err_count / b.count) * 100).toFixed(2)) *
-        (order === "desc" ? -1 : 1);
-    }
-  };
-  const handleSortByCount = () => {
-    const isAsc = orderBy === "count" && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy("count");
-  };
-  const handleSortByErrCount = () => {
-    const isAsc = orderBy === "err-count" && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy("err-count");
-  };
-  const handleSortByErrRate = () => {
-    const isAsc = orderBy === "err-rate" && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy("err-rate");
-  };
+  const [orderBy, setOrderBy] = useState(SORT_ORDERS.COUNT);
   const navigate = useNavigate();
+
+  const getComparator = () => {
+    const sortMultiplier = order === "desc" ? -1 : 1;
+
+    const comparators = {
+      [SORT_ORDERS.COUNT]: (a, b) => (a.count - b.count) * sortMultiplier,
+      [SORT_ORDERS.ERROR_COUNT]: (a, b) =>
+        (a.err_count - b.err_count) * sortMultiplier,
+      [SORT_ORDERS.ERROR_RATE]: (a, b) =>
+        (a.err_count / a.count - b.err_count / b.count) * sortMultiplier * 100,
+    };
+
+    return comparators[orderBy] || comparators[SORT_ORDERS.COUNT];
+  };
+
+  const handleSort = (field) => () => {
+    const isAsc = orderBy === field && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(field);
+  };
+
+  const renderTableHeader = (label, field) => (
+    <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
+      <TableSortLabel
+        active={orderBy === field}
+        direction={orderBy === field ? order : "desc"}
+        onClick={handleSort(field)}
+        className="text-gray-900"
+      >
+        {label}
+      </TableSortLabel>
+    </TableCell>
+  );
+
+  const handleRowClick = (service_name, uri_path, method) => {
+    navigate(
+      `/api-statistics?service_name=${service_name}&uri_path=${uri_path}&method=${method}`
+    );
+  };
 
   return (
     <Card
@@ -96,7 +120,7 @@ const TopApiCalledTable = ({ data }) => {
         Top 10 called APIs
       </Typography>
       <TableContainer component={Paper} className="mt-4">
-        <Table className="min-w-full" aria-label="simple table">
+        <Table className="min-w-full" aria-label="API statistics table">
           <TableHead>
             <TableRow>
               <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-left">
@@ -111,41 +135,14 @@ const TopApiCalledTable = ({ data }) => {
               <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
                 Method
               </TableCell>
-              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
-                <TableSortLabel
-                  active={orderBy === "count"}
-                  direction={orderBy === "count" ? order : "desc"}
-                  onClick={handleSortByCount}
-                  className="text-gray-900"
-                >
-                  Count
-                </TableSortLabel>
-              </TableCell>
-              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
-                <TableSortLabel
-                  active={orderBy === "err-count"}
-                  direction={orderBy === "err-count" ? order : "desc"}
-                  onClick={handleSortByErrCount}
-                  className="text-gray-900"
-                >
-                  Error Count
-                </TableSortLabel>
-              </TableCell>
-              <TableCell className="px-4 py-2 bg-gray-200 border-b border-gray-300 text-right">
-                <TableSortLabel
-                  active={orderBy === "err-rate"}
-                  direction={orderBy === "err-rate" ? order : "desc"}
-                  onClick={handleSortByErrRate}
-                  className="text-gray-900"
-                >
-                  Error Rate
-                </TableSortLabel>
-              </TableCell>
+              {renderTableHeader("Count", SORT_ORDERS.COUNT)}
+              {renderTableHeader("Error Count", SORT_ORDERS.ERROR_COUNT)}
+              {renderTableHeader("Error Rate", SORT_ORDERS.ERROR_RATE)}
             </TableRow>
           </TableHead>
           <TableBody>
             {data
-              .slice(0, 10)
+              .slice(0, DEFAULT_LIMIT)
               .sort(getComparator())
               .map(
                 (
@@ -153,13 +150,11 @@ const TopApiCalledTable = ({ data }) => {
                   index
                 ) => (
                   <TableRow
-                    key={index}
+                    key={`${service_name}-${uri_path}-${method}`}
                     onClick={() =>
-                      navigate(
-                        `/api-statistics?service_name=${service_name}&uri_path=${uri_path}&method=${method}`
-                      )
+                      handleRowClick(service_name, uri_path, method)
                     }
-                    className="hover:bg-gray-100"
+                    className="hover:bg-gray-100 cursor-pointer"
                   >
                     <TableCell className="px-4 py-2 border-b border-gray-300">
                       {index + 1}

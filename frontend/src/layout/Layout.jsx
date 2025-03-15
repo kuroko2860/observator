@@ -89,25 +89,7 @@ function Layout() {
               <List className="menu">
                 <MenuItem to="/online-user" text="Online user" />
                 <MenuItem to="/usage" text="Usage" />
-              </List>
-            </Popup>
-            <Popup
-              trigger={
-                <ListItem>
-                  <NavLink className={"custom-navlink"} to="/trace-detail/123">
-                    Trace
-                  </NavLink>
-                </ListItem>
-              }
-              position="right top"
-              on={"hover"}
-              closeOnDocumentClick
-              mouseLeaveDelay={50}
-              mouseEnterDelay={0}
-              arrow={false}
-            >
-              <List className="menu">
-                <MenuItem to="/trace-detail/123" text="Trace detail" />
+                <MenuItem to="/api-called" text="API called" />
               </List>
             </Popup>
             <Popup
@@ -129,7 +111,6 @@ function Layout() {
                 <MenuItem to="/top-api" text="Top API" />
                 <MenuItem to="/api-statistics" text="API statistic" />
                 <MenuItem to="/api-long" text="Long API" />
-                <MenuItem to="/api-called" text="API called" />
               </List>
             </Popup>
             <Popup

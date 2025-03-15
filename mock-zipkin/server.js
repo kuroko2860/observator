@@ -55,16 +55,30 @@ function generateSpans(traceId, baseTimestamp, spanNum) {
 }
 
 function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
-  // let timestamp = baseTimestamp;
+  let timestamp = baseTimestamp;
+  const spanIdMap = {
+    "span-root": uuidv4(),
+    "span-gateway1": uuidv4(),
+    "span-auth1": uuidv4(),
+    "span-product1": uuidv4(),
+    "span-cache1": uuidv4(),
+    "span-db1": uuidv4(),
+    "span-inventory1": uuidv4(),
+    "span-pricing1": uuidv4(),
+    "span-db2": uuidv4(),
+    "span-notification1": uuidv4(),
+    "span-queue1": uuidv4(),
+    "span-analytics1": uuidv4(),
+  };
   const traceData = [
     {
-      id: "span-root",
+      id: spanIdMap["span-root"],
       traceId: traceId,
       parentId: null,
       name: "GET /api/products",
       localEndpoint: "frontend",
-      timestamp: 1703664522000,
-      duration: 450000,
+      timestamp: timestamp + 0,
+      duration: 650000,
       tags: {
         "http.method": "GET",
         "http.path": "/api/products",
@@ -72,12 +86,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-gateway1",
+      id: spanIdMap["span-gateway1"],
       traceId: traceId,
-      parentId: "span-root",
+      parentId: spanIdMap["span-root"],
       name: "route-request",
       localEndpoint: "api-gateway",
-      timestamp: 1703664522050,
+      timestamp: timestamp + 50,
       duration: 400000,
 
       tags: {
@@ -86,12 +100,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-auth1",
+      id: spanIdMap["span-auth1"],
       traceId: traceId,
-      parentId: "span-gateway1",
+      parentId: spanIdMap["span-gateway1"],
       name: "authenticate",
       localEndpoint: "auth-service",
-      timestamp: 1703664522100,
+      timestamp: timestamp + 100,
       duration: 150000,
 
       tags: {
@@ -100,12 +114,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-product1",
+      id: spanIdMap["span-product1"],
       traceId: traceId,
-      parentId: "span-gateway1",
+      parentId: spanIdMap["span-gateway1"],
       name: "get-products",
       localEndpoint: "product-service",
-      timestamp: 1703664522150,
+      timestamp: timestamp + 150,
       duration: 200000,
 
       tags: {
@@ -114,12 +128,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-cache1",
+      id: spanIdMap["span-cache1"],
       traceId: traceId,
-      parentId: "span-product1",
+      parentId: spanIdMap["span-product1"],
       name: "check-cache",
       localEndpoint: "cache-service",
-      timestamp: 1703664522200,
+      timestamp: timestamp + 200,
       duration: 50000,
 
       tags: {
@@ -128,12 +142,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-db1",
+      id: spanIdMap["span-db1"],
       traceId: traceId,
-      parentId: "span-product1",
+      parentId: spanIdMap["span-product1"],
       name: "query-database",
       localEndpoint: "database",
-      timestamp: 1703664522250,
+      timestamp: timestamp + 250,
       duration: 100000,
 
       tags: {
@@ -142,12 +156,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-inventory1",
+      id: spanIdMap["span-inventory1"],
       traceId: traceId,
-      parentId: "span-product1",
+      parentId: spanIdMap["span-product1"],
       name: "check-inventory",
       localEndpoint: "inventory-service",
-      timestamp: 1703664522300,
+      timestamp: timestamp + 300,
       duration: 75000,
 
       tags: {
@@ -156,12 +170,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-pricing1",
+      id: spanIdMap["span-pricing1"],
       traceId: traceId,
-      parentId: "span-product1",
+      parentId: spanIdMap["span-product1"],
       name: "calculate-prices",
       localEndpoint: "pricing-service",
-      timestamp: 1703664522350,
+      timestamp: timestamp + 350,
       duration: 80000,
 
       tags: {
@@ -170,12 +184,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-db2",
+      id: spanIdMap["span-db2"],
       traceId: traceId,
-      parentId: "span-pricing1",
+      parentId: spanIdMap["span-pricing1"],
       name: "get-price-rules",
       localEndpoint: "database",
-      timestamp: 1703664522400,
+      timestamp: timestamp + 400,
       duration: 30000,
 
       tags: {
@@ -184,12 +198,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-notification1",
+      id: spanIdMap["span-notification1"],
       traceId: traceId,
-      parentId: "span-gateway1",
+      parentId: spanIdMap["span-gateway1"],
       name: "send-notification",
       localEndpoint: "notification-service",
-      timestamp: 1703664522450,
+      timestamp: timestamp + 450,
       duration: 60000,
 
       tags: {
@@ -198,12 +212,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-queue1",
+      id: spanIdMap["span-queue1"],
       traceId: traceId,
-      parentId: "span-notification1",
+      parentId: spanIdMap["span-notification1"],
       name: "queue-message",
       localEndpoint: "message-queue",
-      timestamp: 1703664522500,
+      timestamp: timestamp + 500,
       duration: 40000,
 
       tags: {
@@ -212,12 +226,12 @@ function generateSpansStatic(traceId, baseTimestamp, spanNum = 10) {
       },
     },
     {
-      id: "span-analytics1",
+      id: spanIdMap["span-analytics1"],
       traceId: traceId,
-      parentId: "span-queue1",
+      parentId: spanIdMap["span-queue1"],
       name: "process-analytics",
       localEndpoint: "analytics-service",
-      timestamp: 1703664522550,
+      timestamp: timestamp + 550,
       duration: 25000,
 
       tags: {

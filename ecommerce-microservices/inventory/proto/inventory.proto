@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package inventory;
+
+option go_package = "kltn/ecommerce-microservices/inventory/proto";
+
+service InventoryService {
+  rpc UpdateInventory(UpdateInventoryRequest) returns (UpdateInventoryResponse) {}
+  rpc VerifyInventory(VerifyInventoryRequest) returns (VerifyInventoryResponse) {}
+}
+
+message UpdateInventoryRequest {
+  string order_id = 1;
+  repeated string items = 2;
+}
+
+message UpdateInventoryResponse {
+  string error = 1;
+}
+
+message VerifyInventoryRequest {
+  repeated string items = 1;
+}
+
+message VerifyInventoryResponse {
+  bool available = 1;
+  string error = 2;
+}

@@ -33,18 +33,30 @@ type HttpRequestLog struct {
 	ErrorMessage string `json:"error_message" bson:"error_message"`
 }
 
-var services = []string{}
+var services = []string{
+	"analytics-service",
+	"api-gateway",
+	"auth-service",
+	"cache-service",
+	"database",
+	"frontend",
+	"inventory-service",
+	"message-queue",
+	"notification-service",
+	"pricing-service",
+	"product-service",
+}
 var paths = []string{}
 var SERVICES_NUMS = 7
-var PATHS_NUMS = 4
+var PATHS_NUMS = 2
 
 // var NATS_SERVER = "nats://nats-server:4222"
 var NATS_SERVER = "nats://localhost:4222"
 
 func main() {
-	for i := 1; i <= SERVICES_NUMS; i++ {
-		services = append(services, fmt.Sprintf("service-%d", i))
-	}
+	// for i := 1; i <= SERVICES_NUMS; i++ {
+	// 	services = append(services, fmt.Sprintf("service-%d", i))
+	// }
 	for i := 1; i <= PATHS_NUMS; i++ {
 		paths = append(paths, fmt.Sprintf("path-%d", i))
 	}

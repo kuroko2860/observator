@@ -9,10 +9,28 @@ import (
 
 func (s *Service) GetAllTracesOfPath(ctx context.Context, pathId uint32, _from, _to string) ([]*model.TraceSummaryResponse, error) {
 	from, to := ParseFromToStringToInt(_from, _to)
-	var spans []*model.Span
-	err := spanCollection.Find(ctx, bson.M{
+	var pe []*model.PathEvent
+	err := pathEventCollection.Find(ctx, bson.M{
 		"path_id":   pathId,
-		"timestamp": bson.M{"$gte": from, "$lte": to}}).All(&spans)
+		"timestamp": bson.M{"$gte": from, "$lte": to}},
+	).Limit(10).All(&pe)
+	if err != nil {
+		return nil, err
+	}
+	if len(pe) == 0 {
+		return nil, nil
+	}
+
+	var peids []string
+	for _, p := range pe {
+		peids = append(peids, p.TraceID)
+	}
+
+	var spans []*model.Span
+	err = spanCollection.Find(ctx, bson.M{
+		"trace_id": bson.M{"$in": peids},
+	}).All(&spans)
+
 	if err != nil {
 		return nil, err
 	}

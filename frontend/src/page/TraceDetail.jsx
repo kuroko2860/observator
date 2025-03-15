@@ -50,11 +50,13 @@ const TraceDetail = () => {
     if (!trace || !trace.spans || trace.spans.length === 0) return null;
 
     // Find the minimum timestamp (start of the trace)
-    const minTimestamp = Math.min(...trace.spans.map((span) => span.timestamp));
+    const minTimestamp = Math.min(
+      ...trace.spans.map((span) => span.timestamp * 1000)
+    );
 
     // Calculate total duration - find the max end time of any span
     const maxEndTime = Math.max(
-      ...trace.spans.map((span) => span.timestamp + span.duration)
+      ...trace.spans.map((span) => span.timestamp * 1000 + span.duration)
     );
     const totalDuration = maxEndTime - minTimestamp;
 
@@ -63,8 +65,8 @@ const TraceDetail = () => {
     trace.spans.forEach((span) => {
       spanMap[span.id] = {
         ...span,
-        relativeStartTime: span.timestamp - minTimestamp,
-        relativeEndTime: span.timestamp + span.duration - minTimestamp,
+        relativeStartTime: span.timestamp * 1000 - minTimestamp,
+        relativeEndTime: span.timestamp * 1000 + span.duration - minTimestamp,
         children: [],
       };
     });
@@ -463,39 +465,6 @@ const TraceDetail = () => {
       {/* Path Info view */}
       {viewMode === "graph" && processedData.path && (
         <Box className="border rounded-lg p-4">
-          {/* <Typography variant="h6" className="mb-3">
-            Graph view
-          </Typography> */}
-
-          {/* <Box className="grid grid-cols-2 gap-4 mb-4">
-            <Box>
-              <Typography variant="subtitle2" className="text-gray-500">
-                Path ID
-              </Typography>
-              <Typography>{processedData.path.path_id}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" className="text-gray-500">
-                Created At
-              </Typography>
-              <Typography>
-                {new Date(processedData.path.created_at).toLocaleString()}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" className="text-gray-500">
-                Longest Chain
-              </Typography>
-              <Typography>{processedData.path.longest_chain}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="subtitle2" className="text-gray-500">
-                Longest Error Chain
-              </Typography>
-              <Typography>{processedData.path.longest_error_chain}</Typography>
-            </Box>
-          </Box> */}
-
           <PathTree path={processedData.path} />
         </Box>
       )}

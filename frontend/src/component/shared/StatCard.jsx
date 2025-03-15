@@ -1,15 +1,127 @@
-import { Card, CardContent, Stack } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Stack,
+  Typography,
+  Box,
+  useTheme,
+  useMediaQuery,
+  Tooltip,
+} from "@mui/material";
 
-const StatCard = ({ title, value, unit }) => {
+const StatCard = ({
+  title,
+  value,
+  unit,
+  className,
+  tooltip,
+  icon,
+  trend,
+  trendValue,
+}) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  // Format value for better display
+  const formattedValue =
+    typeof value === "number" && !Number.isInteger(value)
+      ? value.toFixed(2)
+      : value;
+
+  // Determine trend color
+  const getTrendColor = () => {
+    if (!trend) return "inherit";
+    return trend === "up"
+      ? theme.palette.success.main
+      : theme.palette.error.main;
+  };
+
   return (
-    <Card className="shadow-md rounded-lg p-4">
-      <CardContent className="text-lg font-bold">{title}</CardContent>
-      <Stack direction="column" className="space-y-2">
-        <Stack className="flex items-center space-x-2">
-          <h4 className="text-3xl">{value}</h4>
-          <p className="text-sm">{unit}</p>
+    <Card
+      className={`transition-all duration-300 hover:shadow-lg ${
+        className || ""
+      }`}
+      sx={{
+        borderRadius: "12px",
+        backgroundColor: theme.palette.background.paper,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <CardContent
+        sx={{
+          padding: isMobile ? "16px" : "20px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Box className="flex justify-between items-center mb-3">
+          <Typography
+            variant={isMobile ? "subtitle1" : "h6"}
+            component="h3"
+            className="font-semibold text-gray-700"
+            sx={{ fontSize: isMobile ? "1rem" : "1.1rem" }}
+          >
+            {title}
+          </Typography>
+          {icon && <Box className="text-gray-500">{icon}</Box>}
+        </Box>
+
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="baseline"
+          className="mt-2"
+        >
+          <Tooltip title={tooltip || ""} arrow placement="top">
+            <Typography
+              variant={isMobile ? "h5" : "h4"}
+              component="span"
+              className="font-bold"
+              sx={{
+                fontSize: isMobile ? "1.5rem" : "2rem",
+                lineHeight: 1.2,
+              }}
+            >
+              {formattedValue}
+            </Typography>
+          </Tooltip>
+
+          <Typography
+            variant="body2"
+            component="span"
+            className="text-gray-500"
+            sx={{ fontSize: isMobile ? "0.75rem" : "0.875rem" }}
+          >
+            {unit}
+          </Typography>
         </Stack>
-      </Stack>
+
+        {trend && (
+          <Box className="mt-2 flex items-center">
+            <Box
+              component="span"
+              className="flex items-center"
+              sx={{ color: getTrendColor() }}
+            >
+              {trend === "up" ? "↑" : "↓"}
+              <Typography
+                variant="caption"
+                component="span"
+                sx={{
+                  marginLeft: "4px",
+                  color: getTrendColor(),
+                  fontWeight: 500,
+                }}
+              >
+                {trendValue}
+              </Typography>
+            </Box>
+          </Box>
+        )}
+      </CardContent>
     </Card>
   );
 };
