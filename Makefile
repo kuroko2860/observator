@@ -1,9 +1,3 @@
-run-mock-zipkin:
-	nodemon ./mock-zipkin/server.js
-
-run-mock-nats:
-	go run ./mock-nats/main.go
-
 run-obser-analystics:
 	cd ./obser-analystics/main
 	go run main.go
@@ -36,8 +30,3 @@ start-neo4j:
 
 start-nats:
 	docker restart nats
-run-mock-data:
-	make run-mock-nats
-	make run-mock-zipkin
-	make start-neo4j
-	make start-nats

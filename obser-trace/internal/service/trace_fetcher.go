@@ -31,9 +31,9 @@ func (s *Service) FetchTraces(ctx context.Context) error {
 	}
 
 	end := time.Now().Unix()
-	// s.UpdateLockTime(ctx, end)
+	s.UpdateLockTime(ctx, end)
 	s.FetchTracesFromTimeRange(ctx, endtime, end, int64(lookback), int(limit))
-	// s.UpdateEndTime(ctx, end)
+	s.UpdateEndTime(ctx, end)
 	return nil
 }
 
@@ -99,42 +99,73 @@ func (s *Service) InsertPath(ctx context.Context, root *types.GraphNode, pathId 
 	path := types.Path{
 		ID:                uuid.NewString(),
 		PathID:            pathId,
-		CreatedAt:         root.Span.Timestamp,
+		CreatedAt:         root.Span.Timestamp / 1000,
 		Operations:        []types.PathOperation{},
 		Hops:              []types.PathHop{},
 		LongestChain:      s.caculateLongestChain(ctx, root),
 		LongestErrorChain: s.caculateLongestErrorChain(ctx, root), // todo
 	}
 
+	// Use a map to track processed operations to avoid duplicates
 	nodeMap := make(map[string]types.PathOperation)
+
+	// Use a separate map to track processed nodes to ensure we visit each node exactly once
+	processedNodes := make(map[string]bool)
+
 	var processNode func(node *types.GraphNode)
 
 	processNode = func(node *types.GraphNode) {
-		id := strings.ToUpper(node.Span.LocalEndpoint + "_" + node.Span.Name)
-		if _, exists := nodeMap[id]; exists {
+		// Skip if node is nil or has no span
+		if node == nil || node.Span == nil {
 			return
 		}
 
-		nodeOp := types.PathOperation{
-			ID:      id,
-			Name:    node.Span.Name,
-			Service: node.Span.LocalEndpoint,
+		// Skip if we've already processed this node
+		if processedNodes[node.Span.ID] {
+			return
 		}
-		nodeMap[id] = nodeOp
-		path.Operations = append(path.Operations, nodeOp)
 
+		// Mark this node as processed
+		processedNodes[node.Span.ID] = true
+
+		// Create operation ID
+		id := strings.ToUpper(node.Span.LocalEndpoint.ServiceName + "_" + node.Span.Name)
+
+		// Add operation if it doesn't exist
+		if _, exists := nodeMap[id]; !exists {
+			nodeOp := types.PathOperation{
+				ID:      id,
+				Name:    node.Span.Name,
+				Service: node.Span.LocalEndpoint.ServiceName,
+			}
+			nodeMap[id] = nodeOp
+			path.Operations = append(path.Operations, nodeOp)
+		}
+
+		// Process all children
 		for _, child := range node.Children {
+			if child == nil || child.Span == nil {
+				continue
+			}
+
+			// Create hop from this node to child
+			targetId := strings.ToUpper(child.Span.LocalEndpoint.ServiceName + "_" + child.Span.Name)
 			hop := types.PathHop{
 				ID:     uuid.NewString(),
 				Source: id,
-				Target: strings.ToUpper(child.Span.LocalEndpoint + "_" + child.Span.Name),
+				Target: targetId,
 			}
 			path.Hops = append(path.Hops, hop)
+
+			// Process child node
 			processNode(child)
 		}
 	}
 
+	// Start processing from the root
 	processNode(root)
+
+	fmt.Printf("Path created with %d operations and %d hops\n", len(path.Operations), len(path.Hops))
 	pathCollection.InsertOne(ctx, &path)
 }
 
@@ -151,7 +182,7 @@ func (s *Service) InsertEntityFromGraph(ctx context.Context, root *types.GraphNo
 			op = types.Operation{
 				ID:      opID,
 				Name:    root.Span.Name,
-				Service: root.Span.LocalEndpoint,
+				Service: root.Span.LocalEndpoint.ServiceName,
 			}
 			operationCollection.InsertOne(ctx, &op)
 		}
@@ -166,9 +197,9 @@ func (s *Service) InsertEntityFromGraph(ctx context.Context, root *types.GraphNo
 				hop = types.Hop{
 					ID:              hopID,
 					PathID:          pathId,
-					CallerService:   root.Span.LocalEndpoint,
+					CallerService:   root.Span.LocalEndpoint.ServiceName,
 					CallerOperation: root.Span.Name,
-					CalledService:   child.Span.LocalEndpoint,
+					CalledService:   child.Span.LocalEndpoint.ServiceName,
 					CalledOperation: child.Span.Name,
 				}
 				hopCollection.InsertOne(ctx, &hop)
@@ -184,9 +215,9 @@ func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 	var span types.Span
 	span.ID = sr.ID
 	span.TraceID = sr.TraceID
-	span.Service = sr.LocalEndpoint
+	span.Service = sr.LocalEndpoint.ServiceName
 	span.Operation = sr.Name
-	span.Timestamp = sr.Timestamp
+	span.Timestamp = sr.Timestamp / 1000
 	span.Duration = sr.Duration
 	span.Error = sr.Tags["error"]
 	span.ParentID = sr.ParentID
@@ -194,17 +225,18 @@ func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 }
 
 func generateOperationID(sr *types.SpanResponse) string {
-	return strings.ToUpper(sr.LocalEndpoint + "_" + sr.Name)
+	return strings.ToUpper(sr.LocalEndpoint.ServiceName + "_" + sr.Name)
 }
 
 func (s *Service) FetchTracesFromTo(ctx context.Context, from int64, to int64, limit int) ([][]*types.SpanResponse, error) {
 	if from >= to {
 		return nil, errors.New("from >= to")
 	}
+	fmt.Printf("fetching from %d to %d\n", from, to)
 
-	end := to
-	lookback := to - from
-	url := fmt.Sprintf("http://%s:%d/api/v2/traces?lookback=%d&endTs=%d&limit=%d", config.TRACE_HOST, config.TRACE_PORT, lookback, end, limit)
+	end := to             // miliseconds
+	lookback := to - from // miliseconds
+	url := fmt.Sprintf("http://%s:%d/zipkin/api/v2/traces?lookback=%d&endTs=%d&limit=%d", config.TRACE_HOST, config.TRACE_PORT, lookback, end, limit)
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, err

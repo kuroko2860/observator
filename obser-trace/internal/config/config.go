@@ -16,10 +16,10 @@ const (
 
 	MONGO_DATABASE = "kltn"
 	INTERVAL       = 600 // second
-	LOOKBACK       = 60000
+	LOOKBACK       = 60  // second
 	LIMIT          = 99999
 
-	TRACE_PORT = 4111
+	TRACE_PORT = 9411
 
 	Neo4jUsername = "neo4j"
 	Neo4jPassword = "123456789"

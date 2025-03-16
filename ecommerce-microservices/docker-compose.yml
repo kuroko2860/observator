@@ -103,7 +103,7 @@ services:
         "-zipkin.url=http://zipkin:9411/api/v2/spans",
       ]
 
-nats:
+  nats:
     image: nats:latest
     ports:
       - "4222:4222"

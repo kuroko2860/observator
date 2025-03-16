@@ -2,7 +2,7 @@ package types
 
 type Time struct {
 	ID   string `json:"id" bson:"_id"`
-	Time int64  `json:"time" bson:"time"`
+	Time int64  `json:"time" bson:"time"` // second
 }
 
 type Span struct {
@@ -12,8 +12,8 @@ type Span struct {
 	ParentID  string `json:"parent_id" bson:"parent_id"`
 	Service   string `json:"service" bson:"service"`
 	Operation string `json:"operation" bson:"operation"`
-	Timestamp int64  `json:"timestamp" bson:"timestamp"`
-	Duration  int    `json:"duration" bson:"duration"`
+	Timestamp int64  `json:"timestamp" bson:"timestamp"` // milisecond
+	Duration  int    `json:"duration" bson:"duration"`   // microsecond
 	Error     string `json:"error" bson:"error"`
 }
 
@@ -21,21 +21,21 @@ type PathEvent struct {
 	ID        string `json:"id" bson:"_id"`
 	PathID    uint32 `json:"path_id" bson:"path_id"`
 	TraceID   string `json:"trace_id" bson:"trace_id"`
-	Timestamp int64  `json:"timestamp" bson:"timestamp"`
+	Timestamp int64  `json:"timestamp" bson:"timestamp"` // milisecond
 }
 
 type HopEvent struct {
 	ID        string `json:"id" bson:"_id"`
 	HopID     string `json:"hop_id" bson:"hop_id"`
-	Timestamp int64  `json:"timestamp" bson:"timestamp"`
-	Duration  int    `json:"duration" bson:"duration"`
+	Timestamp int64  `json:"timestamp" bson:"timestamp"` // milisecond
+	Duration  int    `json:"duration" bson:"duration"`   // microsecond
 	HasError  bool   `json:"has_error" bson:"has_error"`
 }
 
 type Path struct {
 	ID                string          `json:"id" bson:"_id"`
 	PathID            uint32          `json:"path_id" bson:"path_id"`
-	CreatedAt         int64           `json:"created_at" bson:"created_at"`
+	CreatedAt         int64           `json:"created_at" bson:"created_at"` // milisecond
 	LongestChain      int             `json:"longest_chain" bson:"longest_chain"`
 	LongestErrorChain int             `json:"longest_error_chain" bson:"longest_error_chain"`
 	Operations        []PathOperation `json:"operations" bson:"operations"`

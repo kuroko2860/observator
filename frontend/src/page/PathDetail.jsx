@@ -44,6 +44,26 @@ const formatDateKeys = (obj) => {
   );
 };
 
+// Format timestamp for display
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = (now.getTime() - date.getTime()) / 1000;
+
+  if (diff < 60) {
+    return "now";
+  } else if (diff < 3600) {
+    return `${Math.floor(diff / 60)} minutes ago`;
+  } else if (diff < 86400) {
+    return `${Math.floor(diff / 3600)} hours ago`;
+  } else if (diff < 604800) {
+    return `${Math.floor(diff / 86400)} days ago`;
+  } else {
+    return date.toLocaleString();
+  }
+};
+
 // Components
 const PathStatistics = ({ data, unit }) => (
   <Grid2 container spacing={2}>
@@ -126,7 +146,7 @@ const TraceTable = ({ traces, onViewTrace }) => (
               {trace.root_service + " "}
               <small className="text-gray-500">{trace.root_operation}</small>
             </TableCell>
-            <TableCell>{trace.timestamp}</TableCell>
+            <TableCell>{formatTimestamp(trace.start_time)}</TableCell>
             <TableCell>{trace.span_num}</TableCell>
             <TableCell>{trace.duration}</TableCell>
             <TableCell>

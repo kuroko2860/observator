@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/nats-io/nats.go"
 	"kuroko.com/processor/internal/types"
 )
 
 func (s *Service) ReceiveNATSMsg(m *nats.Msg) error {
+	fmt.Printf("Received nats msg %s\n", string(m.Data))
 	entry := types.HttpLogEntry{}
 	err := json.Unmarshal(m.Data, &entry)
 	if err != nil {

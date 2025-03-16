@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
-	"strings"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -24,11 +24,11 @@ import (
 
 func main() {
 	var (
-		httpAddr          = flag.String("http.addr", ":8081", "HTTP listen address")
-		paymentServiceURL = flag.String("payment.url", "http://localhost:8082", "Payment service URL")
+		httpAddr            = flag.String("http.addr", ":8081", "HTTP listen address")
+		paymentServiceURL   = flag.String("payment.url", "http://localhost:8082", "Payment service URL")
 		inventoryServiceURL = flag.String("inventory.url", "localhost:8083", "Inventory service gRPC address")
-		addressServiceURL = flag.String("address.url", "http://localhost:8084", "Address service URL")
-		zipkinURL         = flag.String("zipkin.url", "http://localhost:9411/api/v2/spans", "Zipkin server URL")
+		addressServiceURL   = flag.String("address.url", "http://localhost:8084", "Address service URL")
+		zipkinURL           = flag.String("zipkin.url", "http://localhost:9411/api/v2/spans", "Zipkin server URL")
 	)
 	flag.Parse()
 
@@ -79,7 +79,7 @@ func main() {
 	{
 		h = transport.NewHTTPHandler(endpoints, logger)
 		// Add the logging middleware
-		h = logging.HTTPMiddleware(logger)(h)
+		h = logging.HTTPMiddleware(logger, "order-service")(h)
 	}
 
 	// Create the HTTP server

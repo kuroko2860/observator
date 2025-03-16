@@ -62,7 +62,7 @@ func main() {
 	{
 		h = transport.NewHTTPHandler(endpoints, logger)
 		// Add the logging middleware
-		h = logging.HTTPMiddleware(logger)(h)
+		h = logging.HTTPMiddleware(logger, "address-service")(h)
 	}
 
 	// Create the HTTP server

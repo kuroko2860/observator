@@ -5,12 +5,17 @@ type SpanResponse struct {
 	ID             string            `json:"id"`
 	ParentID       string            `json:"parentId"`
 	Kind           string            `json:"kind"`
-	LocalEndpoint  string            `json:"localEndpoint"`
-	RemoteEndpoint string            `json:"remoteEndpoint"`
+	LocalEndpoint  SpanEndpoint      `json:"localEndpoint"`
+	RemoteEndpoint SpanEndpoint      `json:"remoteEndpoint"`
 	Name           string            `json:"name"`
-	Timestamp      int64             `json:"timestamp"`
-	Duration       int               `json:"duration"`
+	Timestamp      int64             `json:"timestamp"` // microseconds
+	Duration       int               `json:"duration"`  // microseconds
 	Tags           map[string]string `json:"tags"`
+}
+type SpanEndpoint struct {
+	ServiceName string `json:"serviceName"`
+	IPv4        string `json:"ipv4"`
+	Port        int    `json:"port"`
 }
 
 type GraphNode struct {

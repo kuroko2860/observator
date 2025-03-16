@@ -172,13 +172,20 @@ const TraceDetail = () => {
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      fractionalSecondDigits: 3,
-    });
+    const now = new Date();
+    const diff = (now.getTime() - date.getTime()) / 1000;
+
+    if (diff < 60) {
+      return "now";
+    } else if (diff < 3600) {
+      return `${Math.floor(diff / 60)} minutes ago`;
+    } else if (diff < 86400) {
+      return `${Math.floor(diff / 3600)} hours ago`;
+    } else if (diff < 604800) {
+      return `${Math.floor(diff / 86400)} days ago`;
+    } else {
+      return date.toLocaleString();
+    }
   };
 
   // Format duration for display

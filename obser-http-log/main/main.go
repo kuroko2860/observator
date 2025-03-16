@@ -22,13 +22,17 @@ func main() {
 	db := client.Database(config.MONGO_DATABASE)
 
 	// Connect to a server
-	nc, _ := nats.Connect(nats.DefaultURL)
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Connected to NATS")
 
 	s := service.NewService(db)
 	ticker := s.StartTickerUpdateData(10)
 
 	// Simple Async Subscriber
-	nc.Subscribe("http-log", func(m *nats.Msg) {
+	nc.Subscribe("logs", func(m *nats.Msg) {
 		s.ReceiveNATSMsg(m)
 	})
 	// Create a channel to receive OS signals

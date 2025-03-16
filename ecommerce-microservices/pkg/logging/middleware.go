@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 )
 
@@ -58,9 +59,10 @@ func HTTPMiddleware(logger log.Logger, serviceName string) func(http.Handler) ht
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			begin := time.Now()
+			r.Header.Set("X-Request-ID", uuid.New().String())
 
-			// Wrap the response writer to capture the status code
-			wrw := &responseWriter{w: w, status: http.StatusOK}
+			// Wrap the response writer to capture the status code and response size
+			wrw := &responseWriter{w: w, status: http.StatusOK, responseSize: 0}
 
 			next.ServeHTTP(wrw, r)
 
@@ -73,7 +75,7 @@ func HTTPMiddleware(logger log.Logger, serviceName string) func(http.Handler) ht
 				Referer:       r.Referer(),
 				UserId:        r.Header.Get("User-ID"),
 				Method:        r.Method,
-				StartTime:     begin.Unix(),
+				StartTime:     begin.UnixMilli(),
 				StartTimeDate: begin.Format(time.RFC3339),
 				Host:          r.Host,
 				Protocol:      r.Proto,
@@ -82,7 +84,10 @@ func HTTPMiddleware(logger log.Logger, serviceName string) func(http.Handler) ht
 				UserAgent:     r.UserAgent(),
 				Duration:      duration.Milliseconds(),
 				StatusCode:    wrw.status,
+				ResquestSize:  r.Header.Get("Content-Length"),
+				ResponseSize:  wrw.responseSize,
 			}
+			logger.Log("entry", entry)
 
 			// Publish to NATS if connection is available
 			if natsConn != nil && natsConn.IsConnected() {
@@ -92,7 +97,10 @@ func HTTPMiddleware(logger log.Logger, serviceName string) func(http.Handler) ht
 					err = natsConn.Publish("logs", entryJSON)
 					if err != nil {
 						logger.Log("msg", "Failed to publish log to NATS", "error", err)
+					} else {
+						logger.Log("msg", "Published log to NATS")
 					}
+
 				} else {
 					logger.Log("msg", "Failed to marshal log entry", "error", err)
 				}
@@ -137,10 +145,11 @@ func ServerFinalizer(logger log.Logger) httptransport.ServerFinalizerFunc {
 	}
 }
 
-// responseWriter is a wrapper for http.ResponseWriter that captures the status code
+// responseWriter is a wrapper for http.ResponseWriter that captures the status code and response size
 type responseWriter struct {
-	w      http.ResponseWriter
-	status int
+	w           http.ResponseWriter
+	status      int
+	responseSize int64
 }
 
 func (rw *responseWriter) Header() http.Header {
@@ -148,7 +157,9 @@ func (rw *responseWriter) Header() http.Header {
 }
 
 func (rw *responseWriter) Write(b []byte) (int, error) {
-	return rw.w.Write(b)
+	n, err := rw.w.Write(b)
+	rw.responseSize += int64(n)
+	return n, err
 }
 
 func (rw *responseWriter) WriteHeader(statusCode int) {

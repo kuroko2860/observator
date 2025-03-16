@@ -26,7 +26,7 @@ func main() {
 		httpAddr        = flag.String("http.addr", ":8080", "HTTP listen address")
 		orderServiceURL = flag.String("order.url", "http://localhost:8081", "Order service URL")
 		zipkinURL       = flag.String("zipkin.url", "http://localhost:9411/api/v2/spans", "Zipkin server URL")
-		natsURL = flag.String("nats.url", "nats://localhost:4222", "NATS server URL")
+		natsURL         = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
 	)
 	flag.Parse()
 

@@ -8,31 +8,48 @@ import (
 )
 
 func (s *Service) ConvertTraceToGraph(ctx context.Context, trace []*types.SpanResponse) (*types.GraphNode, error) {
-	root := &types.GraphNode{}
-	mp := make(map[string]*types.GraphNode)
+	if len(trace) == 0 {
+		return nil, nil
+	}
 
+	// Create a map to store nodes by their span ID
+	nodeMap := make(map[string]*types.GraphNode, len(trace))
+	var root *types.GraphNode
+
+	// First pass: create all nodes
 	for _, span := range trace {
-		var node *types.GraphNode
-		if _node, exists := mp[span.ID]; exists {
-			_node.Span = span
-			node = _node
+		node, exists := nodeMap[span.ID]
+		if !exists {
+			node = &types.GraphNode{
+				Span:     span,
+				Children: []*types.GraphNode{},
+			}
+			nodeMap[span.ID] = node
 		} else {
-			node = &types.GraphNode{Span: span}
-			mp[span.ID] = node
+			node.Span = span
 		}
 
+		// Identify the root node (no parent)
 		if span.ParentID == "" {
 			root = node
-		} else {
-			if parent, exists := mp[span.ParentID]; exists {
-				parent.Children = append(parent.Children, node)
-			} else {
-				parent = &types.GraphNode{}
-				parent.Children = append(parent.Children, node)
-				mp[span.ParentID] = node
-			}
 		}
 	}
+
+	// Second pass: build the tree structure
+	for _, span := range trace {
+		if span.ParentID != "" {
+			parent, exists := nodeMap[span.ParentID]
+			if !exists {
+				// Create a placeholder parent if it doesn't exist yet
+				parent = &types.GraphNode{
+					Children: []*types.GraphNode{},
+				}
+				nodeMap[span.ParentID] = parent
+			}
+			parent.Children = append(parent.Children, nodeMap[span.ID])
+		}
+	}
+
 	return root, nil
 }
 
