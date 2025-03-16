@@ -3,87 +3,201 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 
-	pb "kltn/ecommerce-microservices/inventory/proto"
+	"kltn/ecommerce-microservices/inventory/pkg/handler"
 	"kltn/ecommerce-microservices/inventory/pkg/service"
+	pb "kltn/ecommerce-microservices/inventory/proto"
+	"kltn/ecommerce-microservices/pkg/logging"
 	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 func main() {
+	// Parse command line flags
 	var (
-		grpcAddr  = flag.String("grpc.addr", ":8083", "gRPC listen address")
+		httpAddr  = flag.String("http.addr", ":8083", "HTTP listen address")
+		grpcAddr  = flag.String("grpc.addr", ":50051", "gRPC listen address")
 		zipkinURL = flag.String("zipkin.url", "http://localhost:9411/api/v2/spans", "Zipkin server URL")
+		natsURL   = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
 	)
 	flag.Parse()
 
-	// Create a logger
-	var logger log.Logger
-	{
-		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
-		logger = log.With(logger, "caller", log.DefaultCaller)
+	// Configure zerolog
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.With().Caller().Timestamp().Logger()
+
+	if os.Getenv("DEBUG") == "true" {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 
 	// Initialize the tracer
-	{
-		shutdown, err := tracing.InitTracer("inventory-service", *zipkinURL)
-		if err != nil {
-			level.Error(logger).Log("msg", "Failed to initialize tracer", "err", err)
-			os.Exit(1)
-		}
-		defer shutdown(context.Background())
+	shutdown, err := tracing.InitTracer("inventory-service", *zipkinURL)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to initialize tracer")
+		os.Exit(1)
+	}
+	defer shutdown(context.Background())
+
+	// Initialize NATS connection
+	err = logging.InitNATS(*natsURL)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to connect to NATS")
+	} else {
+		defer logging.CloseNATS()
 	}
 
 	// Create the service
-	var svc service.InventoryService
-	{
-		svc = service.NewBasicInventoryService()
-	}
+	svc := service.NewInventoryService()
 
-	// Create the gRPC server
-	var server *grpc.Server
-	{
-		server = grpc.NewServer(
-			grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
-			grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
-		)
-		pb.RegisterInventoryServiceServer(server, service.NewGRPCServer(svc))
-		reflection.Register(server)
-	}
+	// Create gRPC server
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
+	)
+	pb.RegisterInventoryServiceServer(grpcServer, service.NewGRPCServer(svc))
 
-	// Start the server
-	errs := make(chan error)
+	// Start gRPC server in a goroutine
 	go func() {
-		level.Info(logger).Log("transport", "gRPC", "addr", *grpcAddr)
 		lis, err := net.Listen("tcp", *grpcAddr)
 		if err != nil {
-			errs <- err
-			return
+			log.Fatal().Err(err).Str("addr", *grpcAddr).Msg("Failed to listen for gRPC")
 		}
-		errs <- server.Serve(lis)
+		log.Info().Str("transport", "gRPC").Str("addr", *grpcAddr).Msg("Starting gRPC server")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatal().Err(err).Msg("gRPC server failed")
+		}
 	}()
 
-	// Handle shutdown signals
+	// Create and register HTTP handlers
+	inventoryHandler := handler.NewInventoryHandler(svc)
+
+	// Create Echo instance
+	e := echo.New()
+	e.HideBanner = true
+
+	// Add middleware
+	e.Use(middleware.Recover())
+	e.Use(middleware.RequestID())
+	e.Use(otelecho.Middleware("inventory-service"))
+	e.Use(createLoggingMiddleware("inventory-service"))
+
+	// Register routes
+	inventoryHandler.RegisterRoutes(e)
+
+	// Start HTTP server in a goroutine
 	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		errs <- fmt.Errorf("%s", <-c)
+		log.Info().Str("transport", "HTTP").Str("addr", *httpAddr).Msg("Starting HTTP server")
+		if err := e.Start(*httpAddr); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Err(err).Msg("HTTP server startup failed")
+		}
 	}()
 
-	// Wait for an error
-	level.Info(logger).Log("exit", <-errs)
+	// Wait for interrupt signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Info().Msg("Shutting down servers...")
 
-	// Gracefully shutdown the server
-	server.GracefulStop()
+	// Gracefully shutdown the HTTP server with a timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		log.Fatal().Err(err).Msg("HTTP server forced to shutdown")
+	}
+
+	// Stop gRPC server
+	grpcServer.GracefulStop()
+
+	log.Info().Msg("Servers exited")
+}
+
+// createLoggingMiddleware creates a middleware that logs requests with trace and span IDs
+func createLoggingMiddleware(serviceName string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			req := c.Request()
+			res := c.Response()
+			start := time.Now()
+
+			// Extract trace context
+			spanContext := trace.SpanContextFromContext(req.Context())
+			traceID := ""
+			spanID := ""
+			if spanContext.IsValid() {
+				traceID = spanContext.TraceID().String()
+				spanID = spanContext.SpanID().String()
+			}
+
+			// Process request
+			err := next(c)
+
+			// Log request details
+			duration := time.Since(start)
+
+			// Create log entry with zerolog
+			logger := log.With().
+				Str("service", serviceName).
+				Str("method", req.Method).
+				Str("path", req.URL.Path).
+				Int("status", res.Status).
+				Str("trace_id", traceID).
+				Str("span_id", spanID).
+				Str("remote_addr", req.RemoteAddr).
+				Str("user_agent", req.UserAgent()).
+				Dur("duration", duration).
+				Logger()
+
+			// Log based on status code
+			if res.Status >= 500 {
+				logger.Error().Err(err).Msg("Server error")
+			} else if res.Status >= 400 {
+				logger.Warn().Err(err).Msg("Client error")
+			} else {
+				logger.Info().Msg("Request completed")
+			}
+
+			// Create HttpLogEntry for NATS
+			entry := logging.HttpLogEntry{
+				ServiceName:   serviceName,
+				URIPath:       req.URL.Path,
+				Referer:       req.Referer(),
+				UserId:        req.Header.Get("User-ID"),
+				Method:        req.Method,
+				StartTime:     start.UnixMilli(),
+				StartTimeDate: start.Format(time.RFC3339),
+				Host:          req.Host,
+				Protocol:      req.Proto,
+				RemoteIP:      req.RemoteAddr,
+				RequestId:     c.Response().Header().Get(echo.HeaderXRequestID),
+				TraceId:       traceID,
+				SpanId:        spanID,
+				UserAgent:     req.UserAgent(),
+				Duration:      duration.Milliseconds(),
+				StatusCode:    res.Status,
+				ResquestSize:  req.Header.Get("Content-Length"),
+				ResponseSize:  int64(res.Size),
+			}
+
+			// Publish to NATS
+			logging.PublishLogEntry(entry)
+
+			return err
+		}
+	}
 }

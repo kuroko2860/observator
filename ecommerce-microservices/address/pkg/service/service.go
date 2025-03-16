@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/pkg/tracing"
 )
@@ -28,8 +30,8 @@ type basicAddressService struct {
 	addresses map[string]Address
 }
 
-// NewBasicAddressService returns a naive, stateless implementation of AddressService
-func NewBasicAddressService() AddressService {
+// NewAddressService returns a new implementation of AddressService
+func NewAddressService() AddressService {
 	// Initialize with some dummy addresses
 	addresses := make(map[string]Address)
 	addresses["user1"] = Address{
@@ -59,22 +61,40 @@ func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Ad
 	ctx, span := tracer.Start(ctx, "GetAddress")
 	defer span.End()
 
+	// Extract trace context for logging
+	spanContext := trace.SpanContextFromContext(ctx)
+	logger := log.With().
+		Str("trace_id", spanContext.TraceID().String()).
+		Str("span_id", spanContext.SpanID().String()).
+		Str("user_id", userID).
+		Logger()
+
 	// Add attributes to the span
 	span.SetAttributes(
 		attribute.String("user.id", userID),
 	)
 
+	logger.Debug().Msg("Getting address for user")
+
 	if userID == "" {
-		span.RecordError(errors.New("user ID is required"))
-		return Address{}, errors.New("user ID is required")
+		err := errors.New("user ID is required")
+		span.RecordError(err)
+		logger.Error().Err(err).Msg("User ID is required")
+		return Address{}, err
 	}
 
 	address, exists := s.addresses[userID]
 	if !exists {
 		err := errors.New("address not found for user: " + userID)
 		span.RecordError(err)
+		logger.Error().Err(err).Msg("Address not found")
 		return Address{}, err
 	}
+
+	logger.Info().
+		Str("street", address.Street).
+		Str("city", address.City).
+		Msg("Address found successfully")
 
 	return address, nil
 }

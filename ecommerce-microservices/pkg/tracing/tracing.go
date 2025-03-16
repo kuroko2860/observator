@@ -2,6 +2,8 @@ package tracing
 
 import (
 	"context"
+	"net/http"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/zipkin"
@@ -46,4 +48,28 @@ func InitTracer(serviceName, zipkinURL string) (func(context.Context) error, err
 // Tracer returns a named tracer
 func Tracer(name string) trace.Tracer {
 	return otel.Tracer(name)
+}
+
+// NewTracedHTTPClient returns an HTTP client that automatically propagates trace context
+func NewTracedHTTPClient() *http.Client {
+	return &http.Client{
+		Transport: &TracingTransport{
+			Base: http.DefaultTransport,
+		},
+		Timeout: 5 * time.Second,
+	}
+}
+
+// TracingTransport is an http.RoundTripper that automatically injects trace context
+type TracingTransport struct {
+	Base http.RoundTripper
+}
+
+// RoundTrip implements http.RoundTripper
+func (t *TracingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Inject trace context into the outgoing request
+	otel.GetTextMapPropagator().Inject(req.Context(), propagation.HeaderCarrier(req.Header))
+
+	// Call the base transport
+	return t.Base.RoundTrip(req)
 }

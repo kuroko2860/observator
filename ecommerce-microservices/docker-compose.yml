@@ -39,7 +39,7 @@ services:
       - address
     environment:
       - PAYMENT_URL=http://payment:8082
-      - INVENTORY_URL=inventory:8083
+      - INVENTORY_URL=inventory:50051
       - ADDRESS_URL=http://address:8084
       - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
     command:
@@ -47,7 +47,7 @@ services:
         "./order-service",
         "-http.addr=:8081",
         "-payment.url=http://payment:8082",
-        "-inventory.url=inventory:8083",
+        "-inventory.url=inventory:50051",
         "-address.url=http://address:8084",
         "-zipkin.url=http://zipkin:9411/api/v2/spans",
       ]
@@ -82,7 +82,8 @@ services:
     command:
       [
         "./inventory-service",
-        "-grpc.addr=:8083",
+        "-http.addr=:8083",
+        "-grpc.addr=:50051",
         "-zipkin.url=http://zipkin:9411/api/v2/spans",
       ]
 

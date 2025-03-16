@@ -7,7 +7,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/pkg/tracing"
 )
@@ -17,25 +19,34 @@ type CheckoutService interface {
 	UserCheckout(ctx context.Context, userID string, items []string) (string, error)
 }
 
-type basicCheckoutService struct {
+type checkoutService struct {
 	orderServiceURL string
 	httpClient      *http.Client
 }
 
-// NewBasicCheckoutService returns a naive, stateless implementation of CheckoutService
-func NewBasicCheckoutService(orderServiceURL string, client *http.Client) CheckoutService {
-	return &basicCheckoutService{
+// NewCheckoutService returns a new implementation of CheckoutService
+func NewCheckoutService(orderServiceURL string, client *http.Client) CheckoutService {
+	return &checkoutService{
 		orderServiceURL: orderServiceURL,
 		httpClient:      client,
 	}
 }
 
 // UserCheckout implements CheckoutService
-func (s *basicCheckoutService) UserCheckout(ctx context.Context, userID string, items []string) (string, error) {
+func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items []string) (string, error) {
 	// Create a span for the checkout operation
 	tracer := tracing.Tracer("checkout-service")
 	ctx, span := tracer.Start(ctx, "UserCheckout")
 	defer span.End()
+
+	// Extract trace context for logging
+	spanContext := trace.SpanContextFromContext(ctx)
+	logger := log.With().
+		Str("trace_id", spanContext.TraceID().String()).
+		Str("span_id", spanContext.SpanID().String()).
+		Str("user_id", userID).
+		Int("items_count", len(items)).
+		Logger()
 
 	// Add attributes to the span
 	span.SetAttributes(
@@ -43,9 +54,13 @@ func (s *basicCheckoutService) UserCheckout(ctx context.Context, userID string, 
 		attribute.Int("items.count", len(items)),
 	)
 
+	logger.Debug().Msg("Starting checkout process")
+
 	if len(items) == 0 {
-		span.RecordError(errors.New("no items in cart"))
-		return "", errors.New("no items in cart")
+		err := errors.New("no items in cart")
+		span.RecordError(err)
+		logger.Error().Err(err).Msg("Checkout failed")
+		return "", err
 	}
 
 	// Create request body with items
@@ -63,13 +78,17 @@ func (s *basicCheckoutService) UserCheckout(ctx context.Context, userID string, 
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
 		span.RecordError(err)
+		logger.Error().Err(err).Msg("Failed to marshal request")
 		return "", err
 	}
+
+	logger.Debug().Msg("Calling order service")
 
 	// Call the Order Service to create an order
 	req, err := http.NewRequestWithContext(ctx, "POST", s.orderServiceURL+"/orders", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		span.RecordError(err)
+		logger.Error().Err(err).Msg("Failed to create request")
 		return "", err
 	}
 
@@ -81,6 +100,7 @@ func (s *basicCheckoutService) UserCheckout(ctx context.Context, userID string, 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		span.RecordError(err)
+		logger.Error().Err(err).Msg("Order service request failed")
 		return "", err
 	}
 	defer resp.Body.Close()
@@ -89,15 +109,32 @@ func (s *basicCheckoutService) UserCheckout(ctx context.Context, userID string, 
 	if resp.StatusCode != http.StatusOK {
 		err = errors.New("failed to create order")
 		span.RecordError(err)
+		logger.Error().
+			Err(err).
+			Int("status_code", resp.StatusCode).
+			Msg("Order service returned error")
 		return "", err
 	}
 
-	span.AddEvent("Order Service call completed")
+	// Parse the response
+	var orderResponse struct {
+		OrderID string `json:"order_id"`
+	}
+	
+	if err := json.NewDecoder(resp.Body).Decode(&orderResponse); err != nil {
+		span.RecordError(err)
+		logger.Error().Err(err).Msg("Failed to decode response")
+		return "", err
+	}
 
-	// Simulate calling the order service
-	// In a real implementation, you would use the httpClient to make a request
-	orderID := "order-123" // This would come from the Order Service
-
+	orderID := orderResponse.OrderID
+	
 	span.SetAttributes(attribute.String("order.id", orderID))
+	span.AddEvent("Order Service call completed")
+	
+	logger.Info().
+		Str("order_id", orderID).
+		Msg("Order created successfully")
+		
 	return orderID, nil
 }
