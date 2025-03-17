@@ -32,23 +32,23 @@ func (h *CheckoutHandler) RegisterRoutes(e *echo.Echo) {
 func (h *CheckoutHandler) UserCheckout(c echo.Context) error {
 	// Extract trace context
 	ctx := c.Request().Context()
-	
+
 	// Create a span for this handler
 	tracer := tracing.Tracer("checkout-handler")
-	ctx, span := tracer.Start(ctx, "UserCheckout")
+	ctx, span := tracer.Start(ctx, "UserCheckout-handler")
 	defer span.End()
-	
+
 	// Parse request
 	var req struct {
 		UserID string   `json:"user_id"`
 		Items  []string `json:"items"`
 	}
-	
+
 	if err := c.Bind(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
-	
+
 	// Log request details with trace information
 	spanContext := trace.SpanContextFromContext(ctx)
 	logger := log.With().
@@ -57,18 +57,18 @@ func (h *CheckoutHandler) UserCheckout(c echo.Context) error {
 		Str("user_id", req.UserID).
 		Int("items_count", len(req.Items)).
 		Logger()
-	
+
 	logger.Info().Msg("Processing checkout request")
-	
+
 	// Call service
 	orderID, err := h.service.UserCheckout(ctx, req.UserID, req.Items)
 	if err != nil {
 		logger.Error().Err(err).Msg("Checkout failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	
+
 	logger.Info().Str("order_id", orderID).Msg("Checkout successful")
-	
+
 	// Return response
 	return c.JSON(http.StatusOK, map[string]string{"order_id": orderID})
 }

@@ -60,7 +60,7 @@ func NewOrderService(paymentURL, inventoryURL, addressURL string, client *http.C
 func (s *orderService) CreateOrder(ctx context.Context, userID string, items []string) (string, error) {
 	// Create a span for the create order operation
 	tracer := tracing.Tracer("order-service")
-	ctx, span := tracer.Start(ctx, "CreateOrder")
+	ctx, span := tracer.Start(ctx, "CreateOrder-service")
 	defer span.End()
 
 	// Extract trace context for logging

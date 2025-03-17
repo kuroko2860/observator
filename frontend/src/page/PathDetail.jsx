@@ -254,10 +254,24 @@ const PathDetail = () => {
                   </AccordionSummary>
                   <AccordionDetails>
                     <CustomContainer>
-                      <PathTree
-                        path={data.path_info}
-                        handleLinkClick={handleLinkClick}
-                      />
+                      <Box className="flex w-full">
+                        <Box className={showHopDetail ? "w-1/2 pr-2" : "w-full"}>
+                          <PathTree
+                            path={data.path_info}
+                            handleLinkClick={handleLinkClick}
+                          />
+                        </Box>
+                        {showHopDetail && (
+                          <Box className="w-1/2 pl-2">
+                            <HopDetails
+                              hopID={hopID}
+                              params={hopParams}
+                              setShowHopDetail={setShowHopDetail}
+                              unit={data.unit}
+                            />
+                          </Box>
+                        )}
+                      </Box>
                     </CustomContainer>
                   </AccordionDetails>
                 </Accordion>
@@ -289,16 +303,6 @@ const PathDetail = () => {
                     </CustomContainer>
                   </AccordionDetails>
                 </Accordion> */}
-
-                {showHopDetail && (
-                  <HopDetails
-                    hopID={hopID}
-                    params={hopParams}
-                    setShowHopDetail={setShowHopDetail}
-                    unit={data.unit}
-                    className="mt-4"
-                  />
-                )}
               </Box>
             </TabPanel>
 

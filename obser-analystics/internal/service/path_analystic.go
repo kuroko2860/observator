@@ -113,14 +113,17 @@ func (s *Service) GetHopDetailById(ctx context.Context, hopID, _from, _to, unit 
 	return res, nil
 }
 
-func buildHopEventDistribution(hopEvents []*model.HopEvent, from, to, interval int64) (count, errCount int, hopDist, errDist map[int64]int, latency map[string]int) {
+func buildHopEventDistribution(hopEvents []*model.HopEvent, from, to, interval int64) (count, errCount int, hopDist, errDist map[int64]int, latency map[int64]int) {
 	hopDist = map[int64]int{}
 	errDist = map[int64]int{}
+	_latency := make(map[int64][]int)
+
 	_from := (from / interval) * interval
 	_to := (to / interval) * interval
 	for i := _from; i <= _to; i += interval {
 		hopDist[i] = 0
 		errDist[i] = 0
+		_latency[i] = []int{}
 	}
 	sort.Slice(hopEvents, func(i, j int) bool {
 		return hopEvents[i].Duration < hopEvents[j].Duration
@@ -131,18 +134,30 @@ func buildHopEventDistribution(hopEvents []*model.HopEvent, from, to, interval i
 		sum += int(e.Duration)
 		key := (e.Timestamp / interval) * interval
 		hopDist[key]++
+		_latency[key] = append(_latency[key], e.Duration)
 		if e.HasError {
 			errCount++
 			errDist[key]++
 		}
 	}
-	latency = map[string]int{
-		"max": int(hopEvents[count-1].Duration),
-		"min": int(hopEvents[0].Duration),
-		"avg": sum / count,
-		"p50": int(hopEvents[count/2].Duration),
-		"p95": int(hopEvents[int(float32(count)*float32(0.95))].Duration),
-		"p99": int(hopEvents[int(float32(count)*float32(0.99))].Duration),
+	for k, v := range errDist {
+		if hopDist[k] == 0 {
+			errDist[k] = 0
+		} else {
+			errDist[k] = v * 100 / hopDist[k]
+		}
+	}
+	latency = map[int64]int{}
+	for k, v := range _latency {
+		_sum := 0
+		for _, vv := range v {
+			_sum += vv
+		}
+		if len(v) == 0 {
+			latency[k] = 0
+		} else {
+			latency[k] = _sum / len(v)
+		}
 	}
 	return count, errCount, hopDist, errDist, latency
 }

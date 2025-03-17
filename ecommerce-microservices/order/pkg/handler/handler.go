@@ -35,7 +35,7 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 
 	// Create a span for this handler
 	tracer := tracing.Tracer("order-handler")
-	ctx, span := tracer.Start(ctx, "CreateOrder")
+	ctx, span := tracer.Start(ctx, "CreateOrder-handler")
 	defer span.End()
 
 	// Parse request

@@ -36,7 +36,7 @@ func NewCheckoutService(orderServiceURL string, client *http.Client) CheckoutSer
 func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items []string) (string, error) {
 	// Create a span for the checkout operation
 	tracer := tracing.Tracer("checkout-service")
-	ctx, span := tracer.Start(ctx, "UserCheckout")
+	ctx, span := tracer.Start(ctx, "UserCheckout-service")
 	defer span.End()
 
 	// Extract trace context for logging
@@ -120,7 +120,7 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	var orderResponse struct {
 		OrderID string `json:"order_id"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&orderResponse); err != nil {
 		span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to decode response")
@@ -128,13 +128,13 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	}
 
 	orderID := orderResponse.OrderID
-	
+
 	span.SetAttributes(attribute.String("order.id", orderID))
 	span.AddEvent("Order Service call completed")
-	
+
 	logger.Info().
 		Str("order_id", orderID).
 		Msg("Order created successfully")
-		
+
 	return orderID, nil
 }

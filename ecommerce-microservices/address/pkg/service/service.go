@@ -48,7 +48,7 @@ func NewAddressService() AddressService {
 		PostalCode: "67890",
 		Country:    "USA",
 	}
-	
+
 	return &basicAddressService{
 		addresses: addresses,
 	}
@@ -58,7 +58,7 @@ func NewAddressService() AddressService {
 func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Address, error) {
 	// Create a span for the get address operation
 	tracer := tracing.Tracer("address-service")
-	ctx, span := tracer.Start(ctx, "GetAddress")
+	ctx, span := tracer.Start(ctx, "GetAddress-service")
 	defer span.End()
 
 	// Extract trace context for logging

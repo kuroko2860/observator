@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import axios from "../config/axios";
-import PathTree from "../component/PathTree";
+import TraceTree from "../component/TraceTree";
 
 const TraceDetail = () => {
   const { id } = useParams();
@@ -27,13 +27,8 @@ const TraceDetail = () => {
       try {
         setLoading(true);
 
-        const { data } = await axios.get(`/traces/${id}`, {
-          params: {
-            from: 1703664522100,
-            to: 1703664522600,
-          },
-        });
-
+        const { data } = await axios.get(`/traces/${id}`);
+        data.spans.sort((a, b) => a.timestamp - b.timestamp);
         setTrace(data);
         setLoading(false);
       } catch (err) {
@@ -50,13 +45,11 @@ const TraceDetail = () => {
     if (!trace || !trace.spans || trace.spans.length === 0) return null;
 
     // Find the minimum timestamp (start of the trace)
-    const minTimestamp = Math.min(
-      ...trace.spans.map((span) => span.timestamp * 1000)
-    );
+    const minTimestamp = Math.min(...trace.spans.map((span) => span.timestamp));
 
     // Calculate total duration - find the max end time of any span
     const maxEndTime = Math.max(
-      ...trace.spans.map((span) => span.timestamp * 1000 + span.duration)
+      ...trace.spans.map((span) => span.timestamp + span.duration)
     );
     const totalDuration = maxEndTime - minTimestamp;
 
@@ -65,8 +58,8 @@ const TraceDetail = () => {
     trace.spans.forEach((span) => {
       spanMap[span.id] = {
         ...span,
-        relativeStartTime: span.timestamp * 1000 - minTimestamp,
-        relativeEndTime: span.timestamp * 1000 + span.duration - minTimestamp,
+        relativeStartTime: span.timestamp - minTimestamp,
+        relativeEndTime: span.timestamp + span.duration - minTimestamp,
         children: [],
       };
     });
@@ -136,7 +129,7 @@ const TraceDetail = () => {
     const colorPalette = [
       "#1976D2", // blue
       "#388E3C", // green
-      "#D32F2F", // red
+      // "#D32F2F", // red
       "#7B1FA2", // purple
       "#FFA000", // amber
       "#0097A7", // cyan
@@ -170,8 +163,9 @@ const TraceDetail = () => {
 
   // Format timestamp for display
   const formatTimestamp = (timestamp) => {
+    // timestamp in microsecond
     if (!timestamp) return "";
-    const date = new Date(timestamp);
+    const date = new Date(timestamp / 1000);
     const now = new Date();
     const diff = (now.getTime() - date.getTime()) / 1000;
 
@@ -207,9 +201,25 @@ const TraceDetail = () => {
 
     const markers = [];
     const totalDurationMs = processedData.totalDuration / 1000; // Convert to ms
-    const step = Math.max(Math.ceil(totalDurationMs / 6), 1); // Divide into ~6 segments, minimum 1ms
 
-    for (let i = 0; i <= totalDurationMs; i += step) {
+    // Find the smallest nice number greater than the total duration
+    // Nice numbers are 1, 2, 5, 10, 20, 50, 100, etc.
+    let niceMax = 1;
+    const multipliers = [1, 2, 5];
+    let multiplierIndex = 0;
+    let exponent = 0;
+
+    while (niceMax < totalDurationMs) {
+      niceMax = multipliers[multiplierIndex] * Math.pow(10, exponent);
+      multiplierIndex = (multiplierIndex + 1) % multipliers.length;
+      if (multiplierIndex === 0) exponent++;
+    }
+
+    // Calculate step size to have approximately 5-7 markers
+    const step = niceMax / 5;
+
+    // Generate markers from 0 to niceMax
+    for (let i = 0; i <= niceMax; i += step) {
       markers.push({
         position: ((i * 1000) / processedData.totalDuration) * 100,
         label: `${i}ms`,
@@ -277,13 +287,19 @@ const TraceDetail = () => {
               <Chip
                 label="Error"
                 size="small"
-                className="bg-red-100 text-red-800"
+                sx={{
+                  backgroundColor: "#F44336",
+                  color: "white",
+                }}
               />
             ) : (
               <Chip
                 label="OK"
                 size="small"
-                className="bg-green-100 text-green-800"
+                sx={{
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                }}
               />
             )}
           </td>
@@ -353,16 +369,19 @@ const TraceDetail = () => {
       {viewMode === "timeline" && (
         <Box className="border rounded-lg overflow-hidden">
           {/* Time markers */}
-          <Box className="flex border-b border-gray-200 pl-48 pr-4 relative h-8">
-            {timeMarkers.map((marker, idx) => (
-              <Box
-                key={idx}
-                className="absolute text-xs text-gray-500"
-                style={{ left: `calc(${marker.position}% + 48px)` }}
-              >
-                {marker.label}
-              </Box>
-            ))}
+          <Box className="flex">
+            <Box className="w-48 p-2 border-b border-gray-200"></Box>
+            <Box className="flex flex-grow border-b border-gray-200 pl-48 pr-4 relative h-8">
+              {timeMarkers.map((marker, idx) => (
+                <Box
+                  key={idx}
+                  className="absolute text-xs text-gray-500"
+                  style={{ left: `calc(${marker.position}%)` }}
+                >
+                  {marker.label}
+                </Box>
+              ))}
+            </Box>
           </Box>
 
           {/* Flatten the hierarchy for display */}
@@ -415,7 +434,7 @@ const TraceDetail = () => {
                   </Box>
                   <Box className="flex-grow relative border-b border-gray-200 h-10">
                     <Box
-                      className="absolute rounded text-xs text-white px-1 overflow-hidden whitespace-nowrap cursor-pointer hover:opacity-80 flex items-center"
+                      className="absolute rounded text-xs text-white px-1 whitespace-nowrap cursor-pointer hover:opacity-80 flex items-center"
                       style={{
                         ...calculateSpanStyle(span),
                         backgroundColor: span.error
@@ -423,7 +442,10 @@ const TraceDetail = () => {
                           : serviceColorMap[span.service],
                         height: "24px",
                         top: "3px",
-                        marginLeft: `${span.depth * 20}px`, // Indent based on hierarchy
+                        // marginLeft: `${span.depth * 20}px`, // Indent based on hierarchy
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        // maxWidth: `calc(100% - ${span.depth * 20}px)`, // Fixed string template syntax
                       }}
                       onClick={() => handleSpanClick(span)}
                       title={`${span.operation} (${formatDuration(
@@ -472,7 +494,7 @@ const TraceDetail = () => {
       {/* Path Info view */}
       {viewMode === "graph" && processedData.path && (
         <Box className="border rounded-lg p-4">
-          <PathTree path={processedData.path} />
+          <TraceTree path={processedData.path} spanErrors={trace.span_errors} />
         </Box>
       )}
 

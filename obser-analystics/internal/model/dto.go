@@ -35,14 +35,14 @@ type CalledApiResponse struct {
 	Count int
 }
 type HopDetail struct {
-	HopInfo      *Hop           `json:"hop_info"`
-	Count        int            `json:"count"`
-	Frequency    float32        `json:"frequency"`
-	Distribution map[int64]int  `json:"distribution"`
-	ErrorCount   int            `json:"error_count"`
-	ErrorRate    float32        `json:"error_rate"`
-	ErrorDist    map[int64]int  `json:"error_dist"`
-	Latency      map[string]int `json:"latency"`
+	HopInfo      *Hop          `json:"hop_info"`
+	Count        int           `json:"count"`
+	Frequency    float32       `json:"frequency"`
+	Distribution map[int64]int `json:"distribution"`
+	ErrorCount   int           `json:"error_count"`
+	ErrorRate    float32       `json:"error_rate"`
+	ErrorDist    map[int64]int `json:"error_dist"`
+	Latency      map[int64]int `json:"latency"`
 }
 
 type ServiceDetail struct {
@@ -120,6 +120,7 @@ type TraceSummaryResponse struct {
 	Duration      int    `json:"duration"`
 }
 type TraceResponse struct {
-	Spans []*Span `json:"spans"`
-	Path  *Path   `json:"path"`
+	Spans      []*Span         `json:"spans"`
+	Path       *Path           `json:"path"`
+	SpanErrors map[string]bool `json:"span_errors"`
 }

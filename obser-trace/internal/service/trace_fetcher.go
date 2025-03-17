@@ -217,7 +217,7 @@ func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 	span.TraceID = sr.TraceID
 	span.Service = sr.LocalEndpoint.ServiceName
 	span.Operation = sr.Name
-	span.Timestamp = sr.Timestamp / 1000
+	span.Timestamp = sr.Timestamp
 	span.Duration = sr.Duration
 	span.Error = sr.Tags["error"]
 	span.ParentID = sr.ParentID

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"kuroko.com/analystics/internal/model"
@@ -62,6 +63,14 @@ func (s *Service) GetTraceById(ctx context.Context, traceId string) (*model.Trac
 		return nil, err
 	}
 	trace.Spans = spans
+	spanErrMap := make(map[string]bool)
+	for _, span := range spans {
+		if span.Error != "" {
+			spanErrMap[strings.ToUpper(span.Service+"_"+span.Operation)] = true
+		}
+	}
+	trace.SpanErrors = spanErrMap
+
 	var path *model.Path
 	err = pathCollection.Find(ctx, bson.M{"path_id": spans[0].PathID}).One(&path)
 	if err != nil {

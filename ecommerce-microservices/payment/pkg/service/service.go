@@ -28,7 +28,7 @@ func NewPaymentService() PaymentService {
 func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, items []string) (float64, error) {
 	// Create a span for the calculate money operation
 	tracer := tracing.Tracer("payment-service")
-	ctx, span := tracer.Start(ctx, "CalculateMoney")
+	ctx, span := tracer.Start(ctx, "CalculateMoney-Service")
 	defer span.End()
 
 	// Extract trace context for logging
@@ -58,7 +58,7 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 	// In a real implementation, this would calculate the total based on item prices
 	// For simplicity, we'll just use a fixed price per item
 	total := float64(len(items)) * 10.0
-	
+
 	span.SetAttributes(attribute.Float64("total.amount", total))
 	logger.Info().Float64("amount", total).Msg("Payment calculated successfully")
 	return total, nil
@@ -68,7 +68,7 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 func (s *paymentService) ApplyCoupon(ctx context.Context, orderID string, couponCode string, amount float64) (float64, error) {
 	// Create a span for the apply coupon operation
 	tracer := tracing.Tracer("payment-service")
-	ctx, span := tracer.Start(ctx, "ApplyCoupon")
+	ctx, span := tracer.Start(ctx, "ApplyCoupon-Service")
 	defer span.End()
 
 	// Extract trace context for logging
@@ -98,12 +98,12 @@ func (s *paymentService) ApplyCoupon(ctx context.Context, orderID string, coupon
 	// In a real implementation, this would validate the coupon and apply the discount
 	// For simplicity, we'll just apply a 10% discount for any coupon
 	discountedAmount := amount * 0.9
-	
+
 	span.SetAttributes(attribute.Float64("discounted.amount", discountedAmount))
 	logger.Info().
 		Float64("original_amount", amount).
 		Float64("discounted_amount", discountedAmount).
 		Msg("Coupon applied successfully")
-	
+
 	return discountedAmount, nil
 }

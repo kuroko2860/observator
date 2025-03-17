@@ -25,7 +25,7 @@ const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
     fetchData(params);
   }, [params]);
 
-  const renderBarChart = (data, title, caption, distributionData) => (
+  const renderBarChart = (label, title, caption, distributionData) => (
     <BarChartCard
       title={title}
       caption={caption}
@@ -49,32 +49,11 @@ const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
         series={[
           {
             data: Object.values(distributionData || {}),
-            label: "Count",
+            label: label,
           },
         ]}
       />
     </BarChartCard>
-  );
-
-  const renderLatencyTable = (latencyData) => (
-    <TableContainer component={Paper} className="overflow-x-auto">
-      <Table className="min-w-full">
-        <TableHead>
-          <TableRow>
-            <TableCell>Key</TableCell>
-            <TableCell>Value (microsecond)</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {Object.entries(latencyData || {}).map(([key, value], index) => (
-            <TableRow key={index}>
-              <TableCell>{key}</TableCell>
-              <TableCell>{value}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
   );
 
   if (loading) {
@@ -96,20 +75,8 @@ const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
           container
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
-          <StatCard
-            title="Count"
-            value={data.count}
-            unit="calls"
-            className="col-span-1"
-          />
-          <StatCard
-            title="Frequency"
-            value={data.frequency}
-            unit={`calls/${unit}`}
-            className="col-span-1"
-          />
           {renderBarChart(
-            data,
+            "Count",
             "Distribution",
             "Hop call distribution",
             data.distribution
@@ -122,29 +89,22 @@ const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
           container
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
-          <StatCard
-            title="Error count"
-            value={data.error_count}
-            unit="calls"
-            className="col-span-1"
-          />
-          <StatCard
-            title="Error rate"
-            value={data.error_rate * 100}
-            unit="%"
-            className="col-span-1"
-          />
           {renderBarChart(
-            data,
+            "% Error",
             "Error distribution",
-            "error distribution",
+            "Error distribution",
             data.error_dist
           )}
         </Grid2>
       </CustomContainer>
 
       <CustomContainer title="Latency" className="mb-4">
-        {renderLatencyTable(data.latency)}
+        {renderBarChart(
+          "microseconds (us)",
+          "Latency distribution",
+          "Latency distribution",
+          data.latency
+        )}
       </CustomContainer>
 
       <Button

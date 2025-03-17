@@ -32,15 +32,15 @@ func (h *AddressHandler) RegisterRoutes(e *echo.Echo) {
 func (h *AddressHandler) GetAddress(c echo.Context) error {
 	// Extract trace context
 	ctx := c.Request().Context()
-	
+
 	// Create a span for this handler
 	tracer := tracing.Tracer("address-handler")
-	ctx, span := tracer.Start(ctx, "GetAddress")
+	ctx, span := tracer.Start(ctx, "GetAddress-Handler")
 	defer span.End()
-	
+
 	// Get user ID from path parameter
 	userID := c.Param("user_id")
-	
+
 	// Log request details with trace information
 	spanContext := trace.SpanContextFromContext(ctx)
 	logger := log.With().
@@ -48,21 +48,21 @@ func (h *AddressHandler) GetAddress(c echo.Context) error {
 		Str("span_id", spanContext.SpanID().String()).
 		Str("user_id", userID).
 		Logger()
-	
+
 	logger.Info().Msg("Processing get address request")
-	
+
 	// Call service
 	address, err := h.service.GetAddress(ctx, userID)
 	if err != nil {
 		logger.Error().Err(err).Msg("Get address failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	
+
 	logger.Info().
 		Str("street", address.Street).
 		Str("city", address.City).
 		Msg("Address retrieved successfully")
-	
+
 	// Return response
 	return c.JSON(http.StatusOK, address)
 }

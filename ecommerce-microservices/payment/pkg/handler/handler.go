@@ -33,23 +33,23 @@ func (h *PaymentHandler) RegisterRoutes(e *echo.Echo) {
 func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 	// Extract trace context
 	ctx := c.Request().Context()
-	
+
 	// Create a span for this handler
 	tracer := tracing.Tracer("payment-handler")
-	ctx, span := tracer.Start(ctx, "CalculateMoney")
+	ctx, span := tracer.Start(ctx, "CalculateMoney-Handler")
 	defer span.End()
-	
+
 	// Parse request
 	var req struct {
 		OrderID string   `json:"order_id"`
 		Items   []string `json:"items"`
 	}
-	
+
 	if err := c.Bind(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
-	
+
 	// Log request details with trace information
 	spanContext := trace.SpanContextFromContext(ctx)
 	logger := log.With().
@@ -58,18 +58,18 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 		Str("order_id", req.OrderID).
 		Int("items_count", len(req.Items)).
 		Logger()
-	
+
 	logger.Info().Msg("Processing calculate money request")
-	
+
 	// Call service
 	amount, err := h.service.CalculateMoney(ctx, req.OrderID, req.Items)
 	if err != nil {
 		logger.Error().Err(err).Msg("Calculate money failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	
+
 	logger.Info().Float64("amount", amount).Msg("Calculate money completed")
-	
+
 	// Return response
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"amount": amount,
@@ -80,24 +80,24 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 	// Extract trace context
 	ctx := c.Request().Context()
-	
+
 	// Create a span for this handler
 	tracer := tracing.Tracer("payment-handler")
-	ctx, span := tracer.Start(ctx, "ApplyCoupon")
+	ctx, span := tracer.Start(ctx, "ApplyCoupon-Handler")
 	defer span.End()
-	
+
 	// Parse request
 	var req struct {
 		OrderID    string  `json:"order_id"`
 		CouponCode string  `json:"coupon_code"`
 		Amount     float64 `json:"amount"`
 	}
-	
+
 	if err := c.Bind(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
-	
+
 	// Log request details with trace information
 	spanContext := trace.SpanContextFromContext(ctx)
 	logger := log.With().
@@ -107,21 +107,21 @@ func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 		Str("coupon_code", req.CouponCode).
 		Float64("amount", req.Amount).
 		Logger()
-	
+
 	logger.Info().Msg("Processing apply coupon request")
-	
+
 	// Call service
 	discountedAmount, err := h.service.ApplyCoupon(ctx, req.OrderID, req.CouponCode, req.Amount)
 	if err != nil {
 		logger.Error().Err(err).Msg("Apply coupon failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	
+
 	logger.Info().
 		Float64("original_amount", req.Amount).
 		Float64("discounted_amount", discountedAmount).
 		Msg("Apply coupon completed")
-	
+
 	// Return response
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"discounted_amount": discountedAmount,
