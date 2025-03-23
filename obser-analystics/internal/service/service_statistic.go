@@ -25,8 +25,8 @@ func (s *Service) GetAllOperationsCountFromService(ctx context.Context, serviceN
 	var spans []model.Span
 	err := spanCollection.Find(ctx, bson.M{
 		"timestamp": bson.M{
-			"$gte": from,
-			"$lte": to,
+			"$gte": from * 1000,
+			"$lte": to * 1000,
 		},
 		"service": serviceName,
 	}).All(&spans)
@@ -123,8 +123,8 @@ func (s *Service) GetTopCalledService(ctx context.Context, _from, _to, _limit st
 	var spans []model.Span
 	err := spanCollection.Find(ctx, bson.M{
 		"timestamp": bson.M{
-			"$gte": from,
-			"$lte": to,
+			"$gte": from * 1000,
+			"$lte": to * 1000,
 		},
 	}).All(&spans)
 	if err != nil {

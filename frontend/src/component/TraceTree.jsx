@@ -1,5 +1,7 @@
-import { Box, Container } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import CytoscapeComponent from "react-cytoscapejs";
+import OperationLog from "./OperationLog";
+import { useState } from "react";
 
 // Styles for cytoscape nodes and edges
 const cytoscapeStyles = [
@@ -54,31 +56,48 @@ const cytoscapeConfig = {
   },
 };
 
-const TraceTree = ({ path, spanErrors, handleLinkClick = () => {} }) => {
-  const treeData = transformTreeData(path, spanErrors);
+const TraceTree = ({ traceId, path, spanErrors, spanIds }) => {
+  const treeData = transformTreeData(path, spanErrors, spanIds);
+  const [selectedSpanId, setSelectedSpanId] = useState(null);
+  const handleNodeClick = (cy) => {
+    cy.on("tap", "node", (event) => _handleNodeClick(event));
+  };
 
-  const handleEdgeClick = (cy) => {
-    cy.on("tap", "edge", (event) => handleLinkClick(event));
+  const _handleNodeClick = (event) => {
+    const node = event.target;
+    const spanId = node.data("spanId");
+    if (spanId === selectedSpanId) {
+      setSelectedSpanId(null);
+      return;
+    }
+    setSelectedSpanId(spanId);
   };
 
   return (
-    <Container className="h-full flex flex-col">
-      <Box className="flex-1">
+    <Container className="h-full flex">
+      <Box className={selectedSpanId ? "w-2/3 pr-2" : "w-full"}>
         <CytoscapeComponent
           elements={treeData}
           stylesheet={cytoscapeStyles}
           cytoscapeConfig={{ wheelSensitivity: 0.1 }}
           {...cytoscapeConfig}
-          cy={handleEdgeClick}
+          cy={handleNodeClick}
         />
       </Box>
+      {selectedSpanId && (
+        <Box className="w-1/3 pr-2">
+          <Typography variant="h6">Span Details</Typography>
+          <Typography>Span ID: {selectedSpanId}</Typography>
+          <OperationLog traceId={traceId} spanId={selectedSpanId} />
+        </Box>
+      )}
     </Container>
   );
 };
 
-const transformTreeData = (path, spanErrors) => {
+const transformTreeData = (path, spanErrors, spanIds) => {
   const nodes = path.operations.map((node) => ({
-    data: { ...node, error: spanErrors[node.id] },
+    data: { ...node, error: spanErrors[node.id], spanId: spanIds[node.id] },
   }));
   const edges = path.hops.map((edge) => ({ data: edge }));
 

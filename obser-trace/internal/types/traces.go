@@ -15,6 +15,7 @@ type Span struct {
 	Timestamp int64  `json:"timestamp" bson:"timestamp"` // milisecond
 	Duration  int    `json:"duration" bson:"duration"`   // microsecond
 	Error     string `json:"error" bson:"error"`
+	HasError  bool   `json:"has_error" bson:"has_error"`
 }
 
 type PathEvent struct {

@@ -31,6 +31,11 @@ func NewGRPCServer(svc InventoryService) *GRPCServer {
 
 // UpdateInventory implements the gRPC method
 func (s *GRPCServer) UpdateInventory(ctx context.Context, req *pb.UpdateInventoryRequest) (*pb.UpdateInventoryResponse, error) {
+	// Create a span for this gRPC method
+	tracer := tracing.Tracer("inventory-grpc")
+	ctx, span := tracer.Start(ctx, "UpdateInventory-gRPC")
+	defer span.End()
+	
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
 	logger := log.With().
@@ -44,6 +49,11 @@ func (s *GRPCServer) UpdateInventory(ctx context.Context, req *pb.UpdateInventor
 
 	err := s.svc.UpdateInventory(ctx, req.OrderId, req.Items)
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
+		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to update inventory")
 		return &pb.UpdateInventoryResponse{Error: err.Error()}, nil
 	}
@@ -54,6 +64,11 @@ func (s *GRPCServer) UpdateInventory(ctx context.Context, req *pb.UpdateInventor
 
 // VerifyInventory implements the gRPC method
 func (s *GRPCServer) VerifyInventory(ctx context.Context, req *pb.VerifyInventoryRequest) (*pb.VerifyInventoryResponse, error) {
+	// Create a span for this gRPC method
+	tracer := tracing.Tracer("inventory-grpc")
+	ctx, span := tracer.Start(ctx, "VerifyInventory-gRPC")
+	defer span.End()
+	
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
 	logger := log.With().
@@ -66,6 +81,11 @@ func (s *GRPCServer) VerifyInventory(ctx context.Context, req *pb.VerifyInventor
 
 	available, err := s.svc.VerifyInventory(ctx, req.Items)
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
+		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to verify inventory")
 		return &pb.VerifyInventoryResponse{Error: err.Error()}, nil
 	}
@@ -118,7 +138,11 @@ func (s *basicInventoryService) UpdateInventory(ctx context.Context, orderID str
 
 	if len(items) == 0 {
 		err := errors.New("no items to update")
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Update failed")
 		return err
 	}
@@ -127,7 +151,11 @@ func (s *basicInventoryService) UpdateInventory(ctx context.Context, orderID str
 	for _, item := range items {
 		if s.inventory[item] <= 0 {
 			err := errors.New("item out of stock: " + item)
+			// Add error tag to span
+			span.SetAttributes(attribute.Bool("error", true))
+			span.SetAttributes(attribute.String("error.message", err.Error()))
 			span.RecordError(err)
+			
 			logger.Error().Err(err).Str("item", item).Msg("Item out of stock")
 			return err
 		}
@@ -167,7 +195,11 @@ func (s *basicInventoryService) VerifyInventory(ctx context.Context, items []str
 
 	if len(items) == 0 {
 		err := errors.New("no items to verify")
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Verification failed")
 		return false, err
 	}

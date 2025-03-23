@@ -213,13 +213,16 @@ func (s *Service) IsPathExist(ctx context.Context, pathId uint32) bool {
 }
 func convertSrToSpan(sr *types.SpanResponse) *types.Span {
 	var span types.Span
+	_, hasErrorTag := sr.Tags["error"]
+	_, hasErrorMessageTag := sr.Tags["error.message"]
 	span.ID = sr.ID
 	span.TraceID = sr.TraceID
 	span.Service = sr.LocalEndpoint.ServiceName
 	span.Operation = sr.Name
 	span.Timestamp = sr.Timestamp
 	span.Duration = sr.Duration
-	span.Error = sr.Tags["error"]
+	span.Error = sr.Tags["error"] + sr.Tags["error.message"]
+	span.HasError = hasErrorTag || hasErrorMessageTag
 	span.ParentID = sr.ParentID
 	return &span
 }
@@ -249,5 +252,6 @@ func (s *Service) FetchTracesFromTo(ctx context.Context, from int64, to int64, l
 	if err := json.Unmarshal(resData, &traces); err != nil {
 		return nil, err
 	}
+	fmt.Println("get traces with len", len(traces))
 	return traces, nil
 }

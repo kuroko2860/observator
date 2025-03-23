@@ -98,6 +98,7 @@ type Span struct {
 	Duration  int    `json:"duration" bson:"duration"`
 	Error     string `json:"error" bson:"error"`
 	PathID    uint32 `json:"path_id" bson:"path_id"`
+	HasError  bool   `json:"has_error" bson:"has_error"`
 }
 
 type AlertGetObject struct {

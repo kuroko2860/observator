@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (s *Service) StartTickerUpdateData(timeInterval int) time.Ticker {
+func (s *Service) StartTickerUpdateData(timeInterval int) *time.Ticker {
 	ticker := time.NewTicker(time.Duration(timeInterval) * time.Second)
 
 	go func() {
@@ -16,5 +16,5 @@ func (s *Service) StartTickerUpdateData(timeInterval int) time.Ticker {
 		}
 	}()
 
-	return *ticker
+	return ticker
 }

@@ -58,7 +58,11 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 
 	if len(items) == 0 {
 		err := errors.New("no items in cart")
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Checkout failed")
 		return "", err
 	}
@@ -77,7 +81,11 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	// Convert request body to JSON
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to marshal request")
 		return "", err
 	}
@@ -87,7 +95,11 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	// Call the Order Service to create an order
 	req, err := http.NewRequestWithContext(ctx, "POST", s.orderServiceURL+"/orders", bytes.NewBuffer(jsonBody))
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to create request")
 		return "", err
 	}
@@ -99,7 +111,11 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	// Make the request to order service
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Order service request failed")
 		return "", err
 	}
@@ -108,7 +124,11 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	// Check response status
 	if resp.StatusCode != http.StatusOK {
 		err = errors.New("failed to create order")
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().
 			Err(err).
 			Int("status_code", resp.StatusCode).
@@ -122,7 +142,11 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&orderResponse); err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to decode response")
 		return "", err
 	}

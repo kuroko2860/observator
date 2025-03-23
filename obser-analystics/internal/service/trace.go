@@ -65,11 +65,17 @@ func (s *Service) GetTraceById(ctx context.Context, traceId string) (*model.Trac
 	trace.Spans = spans
 	spanErrMap := make(map[string]bool)
 	for _, span := range spans {
-		if span.Error != "" {
+		if span.HasError {
 			spanErrMap[strings.ToUpper(span.Service+"_"+span.Operation)] = true
 		}
 	}
 	trace.SpanErrors = spanErrMap
+
+	spanIdMap := make(map[string]string)
+	for _, span := range spans {
+		spanIdMap[strings.ToUpper(span.Service+"_"+span.Operation)] = span.ID
+	}
+	trace.SpanIds = spanIdMap
 
 	var path *model.Path
 	err = pathCollection.Find(ctx, bson.M{"path_id": spans[0].PathID}).One(&path)

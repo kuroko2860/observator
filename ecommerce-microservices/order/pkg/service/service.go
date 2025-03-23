@@ -82,7 +82,11 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	if len(items) == 0 {
 		err := errors.New("no items in order")
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Order creation failed")
 		return "", err
 	}
@@ -93,14 +97,22 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 	addressReq, err := http.NewRequestWithContext(ctx, "GET",
 		fmt.Sprintf("%s/address/%s", s.addressServiceURL, userID), nil)
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to create address request")
 		return "", fmt.Errorf("failed to create address request: %w", err)
 	}
 
 	addressResp, err := s.httpClient.Do(addressReq)
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to get user address")
 		return "", fmt.Errorf("failed to get user address: %w", err)
 	}
@@ -108,7 +120,11 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	if addressResp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("address service returned status: %d", addressResp.StatusCode)
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Int("status_code", addressResp.StatusCode).Msg("Address service error")
 		return "", err
 	}
@@ -120,7 +136,11 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		Items: items,
 	})
 	if err != nil {
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Failed to verify inventory")
 		return "", fmt.Errorf("failed to verify inventory: %w", err)
 	}
@@ -130,7 +150,11 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		if verifyResp.Error != "" {
 			err = errors.New(verifyResp.Error)
 		}
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Inventory verification failed")
 		return "", err
 	}

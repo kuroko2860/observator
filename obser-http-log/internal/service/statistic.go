@@ -53,7 +53,7 @@ func (s *Service) UpdateDataStatistic(ctx context.Context) error {
 		}
 
 		// !TODO
-		hour := time.Unix(hle.StartTime, 0).Hour()
+		hour := time.Unix(hle.StartTime/1000, 0).Hour()
 		serviceName := hle.ServiceName
 		uriPath := hle.URIPath
 		method := hle.Method
@@ -96,7 +96,7 @@ func (s *Service) UpdateDataAlertGet(ctx context.Context, http_logs []types.Http
 		if time == 0 {
 			mapTime[key] = int(hle.StartTime)
 		} else {
-			if hle.StartTime-int64(time) < 30 { // goi cung 1 api trong 30s
+			if hle.StartTime/1000-int64(time) < 30 { // goi cung 1 api trong 30s
 				id := hle.ServiceName + "*" + hle.URIPath + "*" + hle.Referer
 				_, err := alertGetCollection.UpsertId(ctx, id, types.AlertGetObject{
 					ID:          id,

@@ -120,7 +120,8 @@ type TraceSummaryResponse struct {
 	Duration      int    `json:"duration"`
 }
 type TraceResponse struct {
-	Spans      []*Span         `json:"spans"`
-	Path       *Path           `json:"path"`
-	SpanErrors map[string]bool `json:"span_errors"`
+	Spans      []*Span           `json:"spans"`
+	Path       *Path             `json:"path"`
+	SpanErrors map[string]bool   `json:"span_errors"`
+	SpanIds    map[string]string `json:"span_ids"`
 }

@@ -14,7 +14,7 @@ func (s *Service) FindEndTime(ctx context.Context) int64 {
 	err := timeCollection.Find(ctx, bson.M{"_id": "end_time"}).One(&endTime)
 	if err != nil {
 		fmt.Println(err)
-		return time.Now().Add(-3 * time.Hour).Unix()
+		return time.Now().Add(0 * time.Hour).Unix()
 	}
 	return endTime.Time
 }
@@ -29,7 +29,7 @@ func (s *Service) FindLockTime(ctx context.Context) int64 {
 	err := timeCollection.Find(ctx, bson.M{"_id": "lock_time"}).One(&lockTime)
 	if err != nil {
 		fmt.Println(err)
-		return time.Now().Add(-3 * time.Hour).Unix()
+		return time.Now().Add(0 * time.Hour).Unix()
 	}
 	return lockTime.Time
 }

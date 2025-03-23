@@ -99,3 +99,10 @@ func PublishLogEntry(entry HttpLogEntry) {
 		log.Error().Err(err).Msg("Failed to publish log to NATS")
 	}
 }
+
+// Add this function to expose the NATS connection
+func GetNATSConnection() *nats.Conn {
+	natsMu.Lock()
+	defer natsMu.Unlock()
+	return natsConn
+}

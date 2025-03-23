@@ -29,10 +29,10 @@ func main() {
 	fmt.Println("Connected to NATS")
 
 	s := service.NewService(db)
-	ticker := s.StartTickerUpdateData(10)
+	ticker := s.StartTickerUpdateData(config.INTERVAL)
 
 	// Simple Async Subscriber
-	nc.Subscribe("logs", func(m *nats.Msg) {
+	go nc.Subscribe("logs", func(m *nats.Msg) {
 		s.ReceiveNATSMsg(m)
 	})
 	// Create a channel to receive OS signals
@@ -63,7 +63,9 @@ func main() {
 
 	if <-stopChan {
 		fmt.Println("Exiting the application...")
+		client.Close(context.Background())
 		ticker.Stop()
+		nc.Close()
 		return
 	}
 

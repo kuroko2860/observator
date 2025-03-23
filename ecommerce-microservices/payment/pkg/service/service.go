@@ -50,7 +50,11 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 
 	if len(items) == 0 {
 		err := errors.New("no items to calculate")
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Payment calculation failed")
 		return 0, err
 	}

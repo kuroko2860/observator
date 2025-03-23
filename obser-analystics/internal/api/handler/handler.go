@@ -38,11 +38,23 @@ func (h *Handler) RegisterRoutes(v1 *echo.Group) {
 	v1.GET("/get-alert", h.GetAlertHandler)
 	v1.GET("/uri-list", h.GetUriListHandler)
 	v1.PATCH("/ignore-alert/:id", h.IgnoreAlertHandler)
-	v1.GET("/online-time", h.OnlineTimeHandler)
-	v1.GET("/online-user", h.OnlineUserHandler)
+	// v1.GET("/online-time", h.OnlineTimeHandler)
+	// v1.GET("/online-user", h.OnlineUserHandler)
 	v1.GET("/service-statistic", h.ServiceStatisticHandler)
 	v1.GET("/uri-statistic", h.UriStatisticHandler)
 	v1.GET("/usage", h.UsageHandler)
 	// v1.GET("/http-api", h.GetHttpApiByServiceHandler)
 
+	// Log query routes
+	// Elasticsearch logs
+	v1.GET("/logs/elasticsearch/trace/:trace_id", h.GetElasticsearchLogsByTraceId)
+	v1.GET("/logs/elasticsearch/span/:span_id", h.GetElasticsearchLogsBySpanId)
+	v1.GET("/logs/elasticsearch/trace/:trace_id/span/:span_id", h.GetElasticsearchLogsByTraceAndSpanId)
+	v1.GET("/logs/elasticsearch/service/:service_name", h.GetElasticsearchLogsByService)
+	v1.GET("/logs/elasticsearch/time-range", h.GetElasticsearchLogsByTimeRange)
+	
+	// MongoDB logs
+	v1.GET("/logs/mongodb/trace/:trace_id", h.GetMongoDBLogsByTraceId)
+	v1.GET("/logs/mongodb/span/:span_id", h.GetMongoDBLogsBySpanId)
+	v1.GET("/logs/mongodb/trace/:trace_id/span/:span_id", h.GetMongoDBLogsByTraceAndSpanId)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"net/http"
 	"os"
@@ -33,13 +34,29 @@ func main() {
 		addressServiceURL   = flag.String("address.url", "http://localhost:8084", "Address service URL")
 		zipkinURL           = flag.String("zipkin.url", "http://localhost:9411/api/v2/spans", "Zipkin server URL")
 		natsURL             = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
+		esURL               = flag.String("es.url", "http://elasticsearch:9200", "Elasticsearch URL")
 	)
 	flag.Parse()
 
-	// Configure zerolog
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Logger = log.With().Caller().Timestamp().Logger()
+	// Initialize NATS connection first (before configuring zerolog)
+	err := logging.InitNATS(*natsURL)
+	if err != nil {
+		// Use standard log here since zerolog isn't configured yet
+		log.Error().Err(err).Msg("Failed to connect to NATS")
+	} else {
+		defer logging.CloseNATS()
 
+		// Set up custom zerolog writer that sends logs to NATS
+		natsWriter := &NATSLogWriter{ServiceName: "address-service"}
+		consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
+		multi := zerolog.MultiLevelWriter(consoleWriter, natsWriter)
+
+		// Configure zerolog with the multi-writer
+		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+		log.Logger = zerolog.New(multi).With().Caller().Timestamp().Logger()
+	}
+
+	// Set log level
 	if os.Getenv("DEBUG") == "true" {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	} else {
@@ -63,6 +80,18 @@ func main() {
 		log.Error().Err(err).Msg("Failed to connect to NATS")
 	} else {
 		defer logging.CloseNATS()
+	}
+
+	// Initialize Elasticsearch connection
+	err = logging.InitElasticsearch(*esURL)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
+	} else {
+		// Set up NATS to Elasticsearch bridge
+		err = logging.SetupNATSToElasticsearchBridge(logging.GetNATSConnection(), "microservices-logs")
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to set up NATS to Elasticsearch bridge")
+		}
 	}
 
 	// Ensure inventory service URL doesn't have http:// prefix for gRPC
@@ -189,4 +218,55 @@ func createLoggingMiddleware(serviceName string) echo.MiddlewareFunc {
 			return err
 		}
 	}
+}
+
+// NATSLogWriter is a custom zerolog writer that sends logs to NATS
+type NATSLogWriter struct {
+	ServiceName string
+}
+
+// Write implements io.Writer interface
+func (w *NATSLogWriter) Write(p []byte) (n int, err error) {
+	// Parse the JSON log entry
+	var logEvent map[string]interface{}
+	if err := json.Unmarshal(p, &logEvent); err != nil {
+		return 0, err
+	}
+
+	// Create a log entry for NATS
+	entry := logging.HttpLogEntry{
+		ServiceName:   w.ServiceName,
+		URIPath:       "internal", // Indicates this is an internal log, not an HTTP request
+		Method:        "LOG",
+		StartTime:     time.Now().UnixMilli(),
+		StartTimeDate: time.Now().Format(time.RFC3339),
+	}
+
+	// Copy relevant fields from the log event
+	if level, ok := logEvent["level"].(string); ok {
+		entry.URIPath = "internal/" + level // Include log level in the path
+	}
+
+	if msg, ok := logEvent["message"].(string); ok {
+		entry.ErrorMessage = msg
+	}
+
+	// Include caller information if available
+	if caller, ok := logEvent["caller"].(string); ok {
+		entry.Referer = caller
+	}
+
+	// Include trace and span IDs if available
+	if traceID, ok := logEvent["trace_id"].(string); ok {
+		entry.TraceId = traceID
+	}
+
+	if spanID, ok := logEvent["span_id"].(string); ok {
+		entry.SpanId = spanID
+	}
+
+	// Publish to NATS
+	logging.PublishLogEntry(entry)
+
+	return len(p), nil
 }

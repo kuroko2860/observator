@@ -8,7 +8,7 @@ const (
 	ProjectVersion = "1.0.0"
 
 	MONGO_DATABASE = "kltn"
-	INTERVAL       = 600 // second
+	INTERVAL       = 10 // second
 	LOOKBACK       = 60000
 	LIMIT          = 99999
 

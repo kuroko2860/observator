@@ -266,7 +266,7 @@ const TraceDetail = () => {
                 <Box
                   className="w-2 h-2 rounded-full inline-block mr-2"
                   style={{
-                    backgroundColor: span.error
+                    backgroundColor: span.has_error
                       ? "#F44336"
                       : serviceColorMap[span.service] || "#1976D2",
                   }}
@@ -283,7 +283,7 @@ const TraceDetail = () => {
             {formatTimestamp(span.timestamp)}
           </td>
           <td className="p-2 border-t border-gray-200 text-center">
-            {span.error ? (
+            {span.has_error ? (
               <Chip
                 label="Error"
                 size="small"
@@ -437,7 +437,7 @@ const TraceDetail = () => {
                       className="absolute rounded text-xs text-white px-1 whitespace-nowrap cursor-pointer hover:opacity-80 flex items-center"
                       style={{
                         ...calculateSpanStyle(span),
-                        backgroundColor: span.error
+                        backgroundColor: span.has_error
                           ? "#F44336"
                           : serviceColorMap[span.service],
                         height: "24px",
@@ -494,7 +494,12 @@ const TraceDetail = () => {
       {/* Path Info view */}
       {viewMode === "graph" && processedData.path && (
         <Box className="border rounded-lg p-4">
-          <TraceTree path={processedData.path} spanErrors={trace.span_errors} />
+          <TraceTree
+            traceId={id}
+            path={processedData.path}
+            spanErrors={trace.span_errors}
+            spanIds={trace.span_ids}
+          />
         </Box>
       )}
 

@@ -47,10 +47,12 @@ func main() {
 
 	// Main process logic
 	fmt.Println("Application is running. Press Ctrl+C to exit.")
-	go s.StartTickerFetchTraceData(config.INTERVAL)
+	ticker := s.StartTickerFetchTraceData(config.INTERVAL)
 
 	if <-stopChan {
 		fmt.Println("Exiting the application...")
+		ticker.Stop()
+		client.Close(context.Background())
 		return
 	}
 

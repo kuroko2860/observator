@@ -15,8 +15,8 @@ const (
 	Neo4jURI   = "bolt://localhost:7687"
 
 	MONGO_DATABASE = "kltn"
-	INTERVAL       = 600 // second
-	LOOKBACK       = 60  // second
+	INTERVAL       = 60 // second
+	LOOKBACK       = 60 // second
 	LIMIT          = 99999
 
 	TRACE_PORT = 9411

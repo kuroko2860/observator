@@ -31,6 +31,11 @@ func main() {
 	db := client.Database(config.MONGO_DATABASE)
 
 	s := service.NewService(db)
+
+	// Add this after initializing the service
+	if err := s.InitElasticsearch(); err != nil {
+		fmt.Printf("Failed to initialize Elasticsearch: %v", err)
+	}
 	// Create a channel to receive OS signals
 	signalChan := make(chan os.Signal, 1)
 	// Notify the channel of specific signals

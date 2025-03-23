@@ -78,7 +78,11 @@ func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Ad
 
 	if userID == "" {
 		err := errors.New("user ID is required")
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("User ID is required")
 		return Address{}, err
 	}
@@ -86,7 +90,11 @@ func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Ad
 	address, exists := s.addresses[userID]
 	if !exists {
 		err := errors.New("address not found for user: " + userID)
+		// Add error tag to span
+		span.SetAttributes(attribute.Bool("error", true))
+		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
+		
 		logger.Error().Err(err).Msg("Address not found")
 		return Address{}, err
 	}
