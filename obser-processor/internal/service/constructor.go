@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"math"
 
 	"kuroko.com/processor/internal/types"
@@ -40,11 +41,8 @@ func (s *Service) ConvertTraceToGraph(ctx context.Context, trace []*types.SpanRe
 		if span.ParentID != "" {
 			parent, exists := nodeMap[span.ParentID]
 			if !exists {
-				// Create a placeholder parent if it doesn't exist yet
-				parent = &types.GraphNode{
-					Children: []*types.GraphNode{},
-				}
-				nodeMap[span.ParentID] = parent
+				// broken trace if a parent doesn't exist, not process it
+				return nil, errors.New("broken trace")
 			}
 			parent.Children = append(parent.Children, nodeMap[span.ID])
 		}

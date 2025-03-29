@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/nats-io/nats.go"
 	"github.com/qiniu/qmgo"
@@ -21,20 +23,28 @@ func main() {
 	fmt.Println("Connected to MongoDB")
 	db := client.Database(config.MONGO_DATABASE)
 
-	// Connect to a server
-	nc, err := nats.Connect(nats.DefaultURL)
+	// Connect to NATS
+	nc, err := nats.Connect(config.NATS_URL)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to connect to NATS: %v", err)
 	}
-	fmt.Println("Connected to NATS")
+	defer nc.Close()
 
 	s := service.NewService(db)
-	ticker := s.StartTickerUpdateData(config.INTERVAL)
-
+	// ---------------- http logs ----------------
 	// Simple Async Subscriber
 	go nc.Subscribe("logs", func(m *nats.Msg) {
 		s.ReceiveNATSMsg(m)
 	})
+	ticker := s.StartTickerUpdateData(config.INTERVAL)
+	// ---------------- http logs ----------------
+
+	// ---------------- trace data ----------------
+	s.StartProcessTrace(nc)
+	// ---------------- trace data ----------------
+
+	fmt.Println("Application is running. Press Ctrl+C to exit.")
+
 	// Create a channel to receive OS signals
 	signalChan := make(chan os.Signal, 1)
 	// Notify the channel of specific signals
@@ -58,14 +68,11 @@ func main() {
 		}
 	}()
 
-	// Main process logic
-	fmt.Println("Application is running. Press Ctrl+C to exit.")
-
 	if <-stopChan {
 		fmt.Println("Exiting the application...")
-		client.Close(context.Background())
 		ticker.Stop()
-		nc.Close()
+		client.Close(context.Background())
+		time.Sleep(1 * time.Second)
 		return
 	}
 

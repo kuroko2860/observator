@@ -2,74 +2,55 @@ package tracing
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 )
 
-// InitTracer initializes an OTLP exporter, and configures the corresponding trace provider
-func InitTracer(serviceName, zipkinURL string) (func(context.Context) error, error) {
-	// Create Zipkin exporter
-	exporter, err := zipkin.New(zipkinURL)
+// InitTracer creates a new trace provider instance and registers it as global tracer provider.
+func InitTracer(serviceName, natsURL string) (func(context.Context) error, error) {
+	// Create resource with service information
+	res, err := resource.New(context.Background(),
+		resource.WithAttributes(
+			semconv.ServiceNameKey.String(serviceName),
+		),
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
 
-	// Configure the trace provider with the exporter
-	tp := sdktrace.NewTracerProvider(
+	// Create NATS exporter
+	exporter, err := NewNatsExporter(natsURL, "otel-spans")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create NATS exporter: %w", err)
+	}
+
+	// Create trace provider
+	traceProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(serviceName),
-		)),
+		sdktrace.WithResource(res),
+		sdktrace.WithBatcher(exporter,
+			sdktrace.WithBatchTimeout(time.Second),
+			sdktrace.WithMaxExportBatchSize(100),
+		),
 	)
 
-	// Set the global trace provider
-	otel.SetTracerProvider(tp)
+	// Set global trace provider
+	otel.SetTracerProvider(traceProvider)
 
-	// Set the global propagator
+	// Set global propagator
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	))
 
-	// Return a function to shutdown the tracer provider
-	return tp.Shutdown, nil
-}
-
-// Tracer returns a named tracer
-func Tracer(name string) trace.Tracer {
-	return otel.Tracer(name)
-}
-
-// NewTracedHTTPClient returns an HTTP client that automatically propagates trace context
-func NewTracedHTTPClient() *http.Client {
-	return &http.Client{
-		Transport: &TracingTransport{
-			Base: http.DefaultTransport,
-		},
-		Timeout: 5 * time.Second,
-	}
-}
-
-// TracingTransport is an http.RoundTripper that automatically injects trace context
-type TracingTransport struct {
-	Base http.RoundTripper
-}
-
-// RoundTrip implements http.RoundTripper
-func (t *TracingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// Inject trace context into the outgoing request
-	otel.GetTextMapPropagator().Inject(req.Context(), propagation.HeaderCarrier(req.Header))
-
-	// Call the base transport
-	return t.Base.RoundTrip(req)
+	// Return shutdown function
+	return func(ctx context.Context) error {
+		return traceProvider.Shutdown(ctx)
+	}, nil
 }

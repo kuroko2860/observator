@@ -5,11 +5,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/payment/pkg/service"
-	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 // PaymentHandler handles HTTP requests for the payment service
@@ -36,7 +36,7 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := tracing.Tracer("payment-handler")
+	tracer := otel.Tracer("payment-handler")
 	ctx, span := tracer.Start(ctx, "CalculateMoney-Handler")
 	defer span.End()
 
@@ -51,7 +51,7 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
@@ -74,7 +74,7 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Calculate money failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -93,7 +93,7 @@ func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := tracing.Tracer("payment-handler")
+	tracer := otel.Tracer("payment-handler")
 	ctx, span := tracer.Start(ctx, "ApplyCoupon-Handler")
 	defer span.End()
 
@@ -109,7 +109,7 @@ func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
@@ -133,7 +133,7 @@ func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Apply coupon failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

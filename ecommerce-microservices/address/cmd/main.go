@@ -26,10 +26,10 @@ import (
 func main() {
 	// Parse command line flags
 	var (
-		httpAddr  = flag.String("http.addr", ":8084", "HTTP listen address")
-		zipkinURL = flag.String("zipkin.url", "http://localhost:9411/api/v2/spans", "Zipkin server URL")
-		natsURL   = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
-		esURL     = flag.String("es.url", "http://elasticsearch:9200", "Elasticsearch URL")
+		httpAddr = flag.String("http.addr", ":8084", "HTTP listen address")
+		// kafkaURL = flag.String("kafka.url", "", "Kafka broker URL for OpenTelemetry export")
+		natsURL = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
+		// esURL    = flag.String("es.url", "http://elasticsearch:9200", "Elasticsearch URL")
 	)
 	flag.Parse()
 
@@ -40,12 +40,12 @@ func main() {
 		log.Error().Err(err).Msg("Failed to connect to NATS")
 	} else {
 		defer logging.CloseNATS()
-		
+
 		// Set up custom zerolog writer that sends logs to NATS
 		natsWriter := &NATSLogWriter{ServiceName: "address-service"}
 		consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 		multi := zerolog.MultiLevelWriter(consoleWriter, natsWriter)
-		
+
 		// Configure zerolog with the multi-writer
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 		log.Logger = zerolog.New(multi).With().Caller().Timestamp().Logger()
@@ -59,7 +59,7 @@ func main() {
 	}
 
 	// Initialize the tracer
-	shutdown, err := tracing.InitTracer("address-service", *zipkinURL)
+	shutdown, err := tracing.InitTracer("address-service", *natsURL)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize tracer")
 		os.Exit(1)
@@ -67,16 +67,16 @@ func main() {
 	defer shutdown(context.Background())
 
 	// Initialize Elasticsearch connection
-	err = logging.InitElasticsearch(*esURL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
-	} else {
-		// Set up NATS to Elasticsearch bridge
-		err = logging.SetupNATSToElasticsearchBridge(logging.GetNATSConnection(), "microservices-logs")
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to set up NATS to Elasticsearch bridge")
-		}
-	}
+	// err = logging.InitElasticsearch(*esURL)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
+	// } else {
+	// 	// Set up NATS to Elasticsearch bridge
+	// 	err = logging.SetupNATSToElasticsearchBridge(logging.GetNATSConnection(), "microservices-logs")
+	// 	if err != nil {
+	// 		log.Error().Err(err).Msg("Failed to set up NATS to Elasticsearch bridge")
+	// 	}
+	// }
 
 	// Create the service
 	svc := service.NewAddressService()
@@ -86,7 +86,6 @@ func main() {
 
 	// Create Echo instance
 	e := echo.New()
-	e.HideBanner = true
 
 	// Add middleware
 	e.Use(middleware.Recover())
@@ -208,7 +207,7 @@ func (w *NATSLogWriter) Write(p []byte) (n int, err error) {
 	if err := json.Unmarshal(p, &logEvent); err != nil {
 		return 0, err
 	}
-	
+
 	// Create a log entry for NATS
 	entry := logging.HttpLogEntry{
 		ServiceName:   w.ServiceName,
@@ -217,32 +216,32 @@ func (w *NATSLogWriter) Write(p []byte) (n int, err error) {
 		StartTime:     time.Now().UnixMilli(),
 		StartTimeDate: time.Now().Format(time.RFC3339),
 	}
-	
+
 	// Copy relevant fields from the log event
 	if level, ok := logEvent["level"].(string); ok {
 		entry.URIPath = "internal/" + level // Include log level in the path
 	}
-	
+
 	if msg, ok := logEvent["message"].(string); ok {
 		entry.ErrorMessage = msg
 	}
-	
+
 	// Include caller information if available
 	if caller, ok := logEvent["caller"].(string); ok {
 		entry.Referer = caller
 	}
-	
+
 	// Include trace and span IDs if available
 	if traceID, ok := logEvent["trace_id"].(string); ok {
 		entry.TraceId = traceID
 	}
-	
+
 	if spanID, ok := logEvent["span_id"].(string); ok {
 		entry.SpanId = spanID
 	}
-	
+
 	// Publish to NATS
 	logging.PublishLogEntry(entry)
-	
+
 	return len(p), nil
 }

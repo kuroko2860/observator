@@ -5,11 +5,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/order/pkg/service"
-	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 // OrderHandler handles HTTP requests for the order service
@@ -35,7 +35,7 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := tracing.Tracer("order-handler")
+	tracer := otel.Tracer("order-handler")
 	ctx, span := tracer.Start(ctx, "CreateOrder-handler")
 	defer span.End()
 
@@ -50,7 +50,7 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
@@ -73,7 +73,7 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Order creation failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}

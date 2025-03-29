@@ -59,7 +59,7 @@ const DEFAULT_FORM_VALUES = {
   method: "",
 };
 
-function ApiCalled() {
+function ApiUsage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -262,4 +262,4 @@ function ApiCalled() {
   );
 }
 
-export default ApiCalled;
+export default ApiUsage;

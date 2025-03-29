@@ -5,10 +5,9 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-
-	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 // Address represents a shipping address
@@ -57,7 +56,7 @@ func NewAddressService() AddressService {
 // GetAddress implements AddressService
 func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Address, error) {
 	// Create a span for the get address operation
-	tracer := tracing.Tracer("address-service")
+	tracer := otel.Tracer("address-service")
 	ctx, span := tracer.Start(ctx, "GetAddress-service")
 	defer span.End()
 
@@ -82,7 +81,7 @@ func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Ad
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("User ID is required")
 		return Address{}, err
 	}
@@ -94,7 +93,7 @@ func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Ad
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Address not found")
 		return Address{}, err
 	}

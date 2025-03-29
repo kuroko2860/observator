@@ -30,11 +30,11 @@ import (
 func main() {
 	// Parse command line flags
 	var (
-		httpAddr  = flag.String("http.addr", ":8083", "HTTP listen address")
-		grpcAddr  = flag.String("grpc.addr", ":50051", "gRPC listen address")
-		zipkinURL = flag.String("zipkin.url", "http://localhost:9411/api/v2/spans", "Zipkin server URL")
-		natsURL   = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
-		esURL     = flag.String("es.url", "http://elasticsearch:9200", "Elasticsearch URL")
+		httpAddr = flag.String("http.addr", ":8083", "HTTP listen address")
+		grpcAddr = flag.String("grpc.addr", ":50051", "gRPC listen address")
+		// kafkaURL = flag.String("kafka.url", "", "Kafka broker URL for OpenTelemetry export")
+		natsURL = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
+		// esURL    = flag.String("es.url", "http://elasticsearch:9200", "Elasticsearch URL")
 	)
 	flag.Parse()
 
@@ -64,7 +64,7 @@ func main() {
 	}
 
 	// Initialize the tracer
-	shutdown, err := tracing.InitTracer("inventory-service", *zipkinURL)
+	shutdown, err := tracing.InitTracer("inventory-service", *natsURL)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize tracer")
 		os.Exit(1)
@@ -72,24 +72,24 @@ func main() {
 	defer shutdown(context.Background())
 
 	// Initialize NATS connection
-	err = logging.InitNATS(*natsURL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to connect to NATS")
-	} else {
-		defer logging.CloseNATS()
-	}
+	// err = logging.InitNATS(*natsURL)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to connect to NATS")
+	// } else {
+	// 	defer logging.CloseNATS()
+	// }
 
 	// Initialize Elasticsearch connection
-	err = logging.InitElasticsearch(*esURL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
-	} else {
-		// Set up NATS to Elasticsearch bridge
-		err = logging.SetupNATSToElasticsearchBridge(logging.GetNATSConnection(), "microservices-logs")
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to set up NATS to Elasticsearch bridge")
-		}
-	}
+	// err = logging.InitElasticsearch(*esURL)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
+	// } else {
+	// 	// Set up NATS to Elasticsearch bridge
+	// 	err = logging.SetupNATSToElasticsearchBridge(logging.GetNATSConnection(), "microservices-logs")
+	// 	if err != nil {
+	// 		log.Error().Err(err).Msg("Failed to set up NATS to Elasticsearch bridge")
+	// 	}
+	// }
 
 	// Create the service
 	svc := service.NewInventoryService()
@@ -118,7 +118,6 @@ func main() {
 
 	// Create Echo instance
 	e := echo.New()
-	e.HideBanner = true
 
 	// Add middleware
 	e.Use(middleware.Recover())

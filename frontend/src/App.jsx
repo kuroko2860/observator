@@ -9,7 +9,7 @@ import Layout from "./layout/Layout";
 import TopApi from "./page/TopApi";
 import ApiStatistic from "./page/ApiStatistic";
 import ApiLong from "./page/ApiLong";
-import ApiCalled from "./page/ApiCalled";
+import ApiUsage from "./page/ApiUsage";
 // import Search from "./page/Search";
 import ServiceDetail from "./page/ServiceDetail";
 import TopService from "./page/TopService";
@@ -45,7 +45,7 @@ function App() {
           <Route path="top-api" element={<TopApi />} />
           <Route path="api-statistics" element={<ApiStatistic />} />
           <Route path="api-long" element={<ApiLong />} />
-          <Route path="api-called" element={<ApiCalled />} />
+          <Route path="api-usage" element={<ApiUsage />} />
           {/* <Route path="search" element={<Search />} /> */}
           <Route
             path="service-detail/:service_name"

@@ -10,13 +10,13 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"kltn/ecommerce-microservices/inventory/proto"
-	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 // OrderService describes the service
@@ -59,7 +59,7 @@ func NewOrderService(paymentURL, inventoryURL, addressURL string, client *http.C
 // CreateOrder implements OrderService
 func (s *orderService) CreateOrder(ctx context.Context, userID string, items []string) (string, error) {
 	// Create a span for the create order operation
-	tracer := tracing.Tracer("order-service")
+	tracer := otel.Tracer("order-service")
 	ctx, span := tracer.Start(ctx, "CreateOrder-service")
 	defer span.End()
 
@@ -86,7 +86,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Order creation failed")
 		return "", err
 	}
@@ -101,7 +101,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Failed to create address request")
 		return "", fmt.Errorf("failed to create address request: %w", err)
 	}
@@ -112,7 +112,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Failed to get user address")
 		return "", fmt.Errorf("failed to get user address: %w", err)
 	}
@@ -124,7 +124,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Int("status_code", addressResp.StatusCode).Msg("Address service error")
 		return "", err
 	}
@@ -140,7 +140,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Failed to verify inventory")
 		return "", fmt.Errorf("failed to verify inventory: %w", err)
 	}
@@ -154,7 +154,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Inventory verification failed")
 		return "", err
 	}

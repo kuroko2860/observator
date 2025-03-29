@@ -71,7 +71,7 @@ function Layout() {
                 <MenuItem to="/top-service" text="Top service" />
               </List>
             </Popup>
-            <Popup
+            {/* <Popup
               trigger={
                 <ListItem>
                   <NavLink className={"custom-navlink"} to="">
@@ -91,7 +91,7 @@ function Layout() {
                 <MenuItem to="/usage" text="Usage" />
                 <MenuItem to="/api-called" text="API called" />
               </List>
-            </Popup>
+            </Popup> */}
             <Popup
               trigger={
                 <ListItem>
@@ -108,9 +108,10 @@ function Layout() {
               arrow={false}
             >
               <List className="menu">
-                <MenuItem to="/top-api" text="Top API" />
                 <MenuItem to="/api-statistics" text="API statistic" />
+                <MenuItem to="/top-api" text="Top API" />
                 <MenuItem to="/api-long" text="Long API" />
+                <MenuItem to="/api-usage" text="API usage" />
               </List>
             </Popup>
             <Popup

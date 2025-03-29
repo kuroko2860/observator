@@ -5,10 +5,9 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-
-	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 // PaymentService describes the service
@@ -27,7 +26,7 @@ func NewPaymentService() PaymentService {
 // CalculateMoney implements PaymentService
 func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, items []string) (float64, error) {
 	// Create a span for the calculate money operation
-	tracer := tracing.Tracer("payment-service")
+	tracer := otel.Tracer("payment-service")
 	ctx, span := tracer.Start(ctx, "CalculateMoney-Service")
 	defer span.End()
 
@@ -54,7 +53,7 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 		span.SetAttributes(attribute.Bool("error", true))
 		span.SetAttributes(attribute.String("error.message", err.Error()))
 		span.RecordError(err)
-		
+
 		logger.Error().Err(err).Msg("Payment calculation failed")
 		return 0, err
 	}
@@ -71,7 +70,7 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 // ApplyCoupon implements PaymentService
 func (s *paymentService) ApplyCoupon(ctx context.Context, orderID string, couponCode string, amount float64) (float64, error) {
 	// Create a span for the apply coupon operation
-	tracer := tracing.Tracer("payment-service")
+	tracer := otel.Tracer("payment-service")
 	ctx, span := tracer.Start(ctx, "ApplyCoupon-Service")
 	defer span.End()
 

@@ -11,6 +11,16 @@ type Service struct {
 	*qmgo.Database
 }
 
+// http log
+var httpLogEntryCollection *qmgo.Collection
+var alertGetCollection *qmgo.Collection
+var statisticDoneCollection *qmgo.Collection
+var serviceStatisticObjectCollection *qmgo.Collection
+var uriStatisticObjectCollection *qmgo.Collection
+var uriObjectCollection *qmgo.Collection
+var svcObjectCollection *qmgo.Collection
+
+// trace
 var hopEventCollection *qmgo.Collection
 var hopCollection *qmgo.Collection
 var operationCollection *qmgo.Collection
@@ -22,6 +32,14 @@ var pathCollection *qmgo.Collection
 
 func NewService(db *qmgo.Database) *Service {
 	s := &Service{db}
+
+	httpLogEntryCollection = s.Collection("http_log_entry")
+	alertGetCollection = s.Collection("alert_get")
+	statisticDoneCollection = s.Collection("statistic_done")
+	serviceStatisticObjectCollection = s.Collection("service_statistic_object")
+	uriStatisticObjectCollection = s.Collection("uri_statistic_object")
+	uriObjectCollection = s.Collection("uri_object")
+	svcObjectCollection = s.Collection("service_object")
 
 	hopEventCollection = s.Collection("hop_event")
 	hopCollection = s.Collection("hop")
