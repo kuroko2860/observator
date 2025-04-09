@@ -21,7 +21,6 @@ import (
 
 var (
 	httpAddr   = flag.String("http.addr", ":8085", "HTTP listen address")
-	natsURL    = flag.String("nats.url", "nats://localhost:4222", "NATS server URL")
 	natsSubj   = flag.String("nats.subject", "otel-spans", "NATS subject for spans")
 	bufferTime = flag.Duration("buffer.time", 30*time.Second, "Time to buffer spans before processing")
 )
@@ -86,20 +85,20 @@ func convertSpanToSpanResponse(span *tracepb.Span) *types.SpanResponse {
 	duration := int((endTime - startTime)) // Convert to microseconds
 
 	// Convert attributes to map
-	attributes := make(map[string]interface{})
+	attributes := make(map[string]any)
 	for _, attr := range span.Attributes {
 		attributes[attr.Key] = convertAnyValue(attr.Value)
 	}
 
 	// Convert events
-	events := make([]map[string]interface{}, 0, len(span.Events))
+	events := make([]map[string]any, 0, len(span.Events))
 	for _, event := range span.Events {
-		eventMap := map[string]interface{}{
+		eventMap := map[string]any{
 			"name":      event.Name,
 			"timestamp": event.TimeUnixNano,
 		}
 
-		eventAttrs := make(map[string]interface{})
+		eventAttrs := make(map[string]any)
 		for _, attr := range event.Attributes {
 			eventAttrs[attr.Key] = convertAnyValue(attr.Value)
 		}
@@ -112,14 +111,14 @@ func convertSpanToSpanResponse(span *tracepb.Span) *types.SpanResponse {
 	}
 
 	// Convert links
-	links := make([]map[string]interface{}, 0, len(span.Links))
+	links := make([]map[string]any, 0, len(span.Links))
 	for _, link := range span.Links {
-		linkMap := map[string]interface{}{
+		linkMap := map[string]any{
 			"trace_id": fmt.Sprintf("%x", link.TraceId),
 			"span_id":  fmt.Sprintf("%x", link.SpanId),
 		}
 
-		linkAttrs := make(map[string]interface{})
+		linkAttrs := make(map[string]any)
 		for _, attr := range link.Attributes {
 			linkAttrs[attr.Key] = convertAnyValue(attr.Value)
 		}
@@ -142,10 +141,12 @@ func convertSpanToSpanResponse(span *tracepb.Span) *types.SpanResponse {
 		LocalEndpoint: types.SpanEndpoint{
 			ServiceName: attributes["service.name"].(string),
 		},
-		Tags: convertAttrributes(attributes),
+		Tags:   convertAttrributes(attributes),
+		Events: events,
+		Links:  links,
 	}
 }
-func convertAttrributes(attributes map[string]interface{}) map[string]string {
+func convertAttrributes(attributes map[string]any) map[string]string {
 	// Convert attributes to map
 	attributesMap := make(map[string]string)
 	for key, value := range attributes {
@@ -155,7 +156,7 @@ func convertAttrributes(attributes map[string]interface{}) map[string]string {
 }
 
 // Convert AnyValue to Go type
-func convertAnyValue(value *v1.AnyValue) interface{} {
+func convertAnyValue(value *v1.AnyValue) any {
 	if value == nil {
 		return nil
 	}
@@ -170,13 +171,13 @@ func convertAnyValue(value *v1.AnyValue) interface{} {
 	case *v1.AnyValue_DoubleValue:
 		return v.DoubleValue
 	case *v1.AnyValue_ArrayValue:
-		result := make([]interface{}, 0, len(v.ArrayValue.Values))
+		result := make([]any, 0, len(v.ArrayValue.Values))
 		for _, val := range v.ArrayValue.Values {
 			result = append(result, convertAnyValue(val))
 		}
 		return result
 	case *v1.AnyValue_KvlistValue:
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		for _, kv := range v.KvlistValue.Values {
 			result[kv.Key] = convertAnyValue(kv.Value)
 		}
@@ -213,7 +214,6 @@ func (s *Service) StartProcessTrace(nc *nats.Conn) {
 					break
 				}
 			}
-			log.Println("Service name:", serviceName)
 
 			// Process spans in each scope
 			for _, ss := range rs.ScopeSpans {

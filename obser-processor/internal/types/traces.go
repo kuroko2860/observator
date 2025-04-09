@@ -6,15 +6,19 @@ type Time struct {
 }
 
 type Span struct {
-	ID        string `json:"id" bson:"_id"`
-	TraceID   string `json:"trace_id" bson:"trace_id"`
-	ParentID  string `json:"parent_id" bson:"parent_id"`
-	Service   string `json:"service" bson:"service"`
-	Operation string `json:"operation" bson:"operation"`
-	Timestamp int64  `json:"timestamp" bson:"timestamp"` // milisecond
-	Duration  int    `json:"duration" bson:"duration"`   // microsecond
-	Error     string `json:"error" bson:"error"`
-	HasError  bool   `json:"has_error" bson:"has_error"`
+	ID        string            `json:"id" bson:"_id"`
+	TraceID   string            `json:"trace_id" bson:"trace_id"`
+	PathID    uint32            `json:"path_id" bson:"path_id"`
+	ParentID  string            `json:"parent_id" bson:"parent_id"`
+	Service   string            `json:"service" bson:"service"`
+	Operation string            `json:"operation" bson:"operation"`
+	Timestamp int64             `json:"timestamp" bson:"timestamp"` // milisecond
+	Duration  int               `json:"duration" bson:"duration"`   // microsecond
+	Error     string            `json:"error" bson:"error"`
+	HasError  bool              `json:"has_error" bson:"has_error"`
+	Events    []map[string]any  `json:"events" bson:"events"`
+	Links     []map[string]any  `json:"links" bson:"links"`
+	Tags      map[string]string `json:"tags" bson:"tags"`
 }
 
 type PathEvent struct {

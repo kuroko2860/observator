@@ -143,11 +143,15 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
     );
     const counts = Object.values(apiFetcher.data?.Distribution || {});
     const errCounts = Object.values(apiFetcher.data?.ErrorDistTime || {});
+    const latencyCounts = Object.values(apiFetcher.data?.LatencyDist || {});
 
-    return { labels, counts, errCounts };
+    return { labels, counts, errCounts, latencyCounts };
   }, [apiFetcher.data, isMobile]);
 
-  const { labels, counts } = useMemo(() => getChartData(), [getChartData]);
+  const { labels, counts, errCounts, latencyCounts } = useMemo(
+    () => getChartData(),
+    [getChartData]
+  );
 
   const renderForm = () => (
     <Card className="p-4 md:p-6 rounded-lg shadow-sm mb-4">
@@ -255,6 +259,74 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
         </TableBody>
       </Table>
     </TableContainer>
+  );
+  const renderLatencyChart = () => (
+    <BarChartCard
+      title="Request Latency Distribution"
+      caption={`API latency per ${timeUnit}`}
+    >
+      <BarChart
+        width={chartDimensions.width}
+        height={chartDimensions.height}
+        margin={{
+          top: 20,
+          right: 20,
+          bottom: isMobile ? 80 : 40,
+          left: 40,
+        }}
+        xAxis={[
+          {
+            scaleType: "band",
+            data: labels,
+            label: "Time",
+            tickPlacement: "start",
+            tickLabelPlacement: "tick",
+            labelRotation: isMobile ? -45 : 0,
+          },
+        ]}
+        series={[
+          {
+            data: latencyCounts,
+            label: "Latency (ms)",
+            color: theme.palette.primary.main,
+          },
+        ]}
+      />
+    </BarChartCard>
+  );
+  const renderErrorChart = () => (
+    <BarChartCard
+      title="Error Rate Distribution"
+      caption={`Error rate per ${timeUnit}`}
+    >
+      <BarChart
+        width={chartDimensions.width}
+        height={chartDimensions.height}
+        margin={{
+          top: 20,
+          right: 20,
+          bottom: isMobile ? 80 : 40,
+          left: 40,
+        }}
+        xAxis={[
+          {
+            scaleType: "band",
+            data: labels,
+            label: "Time",
+            tickPlacement: "start",
+            tickLabelPlacement: "tick",
+            labelRotation: isMobile ? -45 : 0,
+          },
+        ]}
+        series={[
+          {
+            data: errCounts,
+            label: "Errors",
+            color: theme.palette.error.main,
+          },
+        ]}
+      />
+    </BarChartCard>
   );
 
   const renderContent = () => {
@@ -399,6 +471,7 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
           <AccordionDetails className="bg-white p-0">
             <CustomContainer title="Response Time Analysis" className="p-0">
               <Box className="p-4">{renderLatencyTable()}</Box>
+              <Box className="p-4">{renderLatencyChart()}</Box>
             </CustomContainer>
           </AccordionDetails>
         </Accordion>
@@ -471,6 +544,7 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
                     ]}
                   />
                 </BarChartCard>
+                {renderErrorChart()}
               </Grid2>
             </CustomContainer>
           </AccordionDetails>

@@ -43,8 +43,6 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	logger := log.With().
 		Str("trace_id", spanContext.TraceID().String()).
 		Str("span_id", spanContext.SpanID().String()).
-		Str("user_id", userID).
-		Int("items_count", len(items)).
 		Logger()
 
 	// Add attributes to the span

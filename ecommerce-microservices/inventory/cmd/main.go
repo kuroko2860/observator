@@ -32,9 +32,7 @@ func main() {
 	var (
 		httpAddr = flag.String("http.addr", ":8083", "HTTP listen address")
 		grpcAddr = flag.String("grpc.addr", ":50051", "gRPC listen address")
-		// kafkaURL = flag.String("kafka.url", "", "Kafka broker URL for OpenTelemetry export")
-		natsURL = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
-		// esURL    = flag.String("es.url", "http://elasticsearch:9200", "Elasticsearch URL")
+		natsURL  = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
 	)
 	flag.Parse()
 
@@ -70,26 +68,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer shutdown(context.Background())
-
-	// Initialize NATS connection
-	// err = logging.InitNATS(*natsURL)
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("Failed to connect to NATS")
-	// } else {
-	// 	defer logging.CloseNATS()
-	// }
-
-	// Initialize Elasticsearch connection
-	// err = logging.InitElasticsearch(*esURL)
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
-	// } else {
-	// 	// Set up NATS to Elasticsearch bridge
-	// 	err = logging.SetupNATSToElasticsearchBridge(logging.GetNATSConnection(), "microservices-logs")
-	// 	if err != nil {
-	// 		log.Error().Err(err).Msg("Failed to set up NATS to Elasticsearch bridge")
-	// 	}
-	// }
 
 	// Create the service
 	svc := service.NewInventoryService()
@@ -223,7 +201,7 @@ func createLoggingMiddleware(serviceName string) echo.MiddlewareFunc {
 			}
 
 			// Publish to NATS
-			logging.PublishLogEntry(entry)
+			logging.PublishHttpRequestLogEntry(entry)
 
 			return err
 		}
@@ -244,35 +222,31 @@ func (w *NATSLogWriter) Write(p []byte) (n int, err error) {
 	}
 
 	// Create a log entry for NATS
-	entry := logging.HttpLogEntry{
-		ServiceName:   w.ServiceName,
-		URIPath:       "internal", // Indicates this is an internal log, not an HTTP request
-		Method:        "LOG",
-		StartTime:     time.Now().UnixMilli(),
-		StartTimeDate: time.Now().Format(time.RFC3339),
+	entry := logging.LogEntry{
+		StartTime: time.Now().UnixMilli(),
 	}
 
 	// Copy relevant fields from the log event
 	if level, ok := logEvent["level"].(string); ok {
-		entry.URIPath = "internal/" + level // Include log level in the path
+		entry.Level = level
 	}
 
 	if msg, ok := logEvent["message"].(string); ok {
-		entry.ErrorMessage = msg
+		entry.Message = msg
 	}
 
 	// Include caller information if available
 	if caller, ok := logEvent["caller"].(string); ok {
-		entry.Referer = caller
+		entry.Caller = caller
 	}
 
 	// Include trace and span IDs if available
 	if traceID, ok := logEvent["trace_id"].(string); ok {
-		entry.TraceId = traceID
+		entry.TraceID = traceID
 	}
 
 	if spanID, ok := logEvent["span_id"].(string); ok {
-		entry.SpanId = spanID
+		entry.SpanID = spanID
 	}
 
 	// Publish to NATS

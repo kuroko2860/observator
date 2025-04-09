@@ -32,9 +32,7 @@ func main() {
 		paymentServiceURL   = flag.String("payment.url", "http://localhost:8082", "Payment service URL")
 		inventoryServiceURL = flag.String("inventory.url", "localhost:8083", "Inventory service gRPC address")
 		addressServiceURL   = flag.String("address.url", "http://localhost:8084", "Address service URL")
-		// kafkaURL            = flag.String("kafka.url", "", "Kafka broker URL for OpenTelemetry export")
-		natsURL = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
-		// esURL               = flag.String("es.url", "http://elasticsearch:9200", "Elasticsearch URL")
+		natsURL             = flag.String("nats.url", "nats://nats:4222", "NATS server URL")
 	)
 	flag.Parse()
 
@@ -47,7 +45,7 @@ func main() {
 		defer logging.CloseNATS()
 
 		// Set up custom zerolog writer that sends logs to NATS
-		natsWriter := &NATSLogWriter{ServiceName: "address-service"}
+		natsWriter := &NATSLogWriter{ServiceName: "order-service"}
 		consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 		multi := zerolog.MultiLevelWriter(consoleWriter, natsWriter)
 
@@ -64,7 +62,7 @@ func main() {
 	}
 
 	// Initialize the tracer
-	shutdown, err := tracing.InitTracer("address-service", *natsURL)
+	shutdown, err := tracing.InitTracer("order-service", *natsURL)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to initialize tracer")
 		os.Exit(1)
@@ -74,33 +72,11 @@ func main() {
 	// Create an instrumented HTTP client for service-to-service communication
 	httpClient := tracing.NewTracedHTTPClient()
 
-	// Initialize NATS connection
-	// err = logging.InitNATS(*natsURL)
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("Failed to connect to NATS")
-	// } else {
-	// 	defer logging.CloseNATS()
-	// }
-
-	// Initialize Elasticsearch connection
-	// err = logging.InitElasticsearch(*esURL)
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
-	// } else {
-	// 	// Set up NATS to Elasticsearch bridge
-	// 	err = logging.SetupNATSToElasticsearchBridge(logging.GetNATSConnection(), "microservices-logs")
-	// 	if err != nil {
-	// 		log.Error().Err(err).Msg("Failed to set up NATS to Elasticsearch bridge")
-	// 	}
-	// }
-
 	// Ensure inventory service URL doesn't have http:// prefix for gRPC
 	inventoryURL := *inventoryServiceURL
 	if strings.HasPrefix(inventoryURL, "http://") {
 		inventoryURL = strings.TrimPrefix(inventoryURL, "http://")
 	}
-
-	// Update the route registration section in main.go
 
 	// Create the service
 	svc := service.NewOrderService(*paymentServiceURL, inventoryURL, *addressServiceURL, httpClient)
@@ -212,7 +188,7 @@ func createLoggingMiddleware(serviceName string) echo.MiddlewareFunc {
 			}
 
 			// Publish to NATS
-			logging.PublishLogEntry(entry)
+			logging.PublishHttpRequestLogEntry(entry)
 
 			return err
 		}
@@ -233,35 +209,31 @@ func (w *NATSLogWriter) Write(p []byte) (n int, err error) {
 	}
 
 	// Create a log entry for NATS
-	entry := logging.HttpLogEntry{
-		ServiceName:   w.ServiceName,
-		URIPath:       "internal", // Indicates this is an internal log, not an HTTP request
-		Method:        "LOG",
-		StartTime:     time.Now().UnixMilli(),
-		StartTimeDate: time.Now().Format(time.RFC3339),
+	entry := logging.LogEntry{
+		StartTime: time.Now().UnixMilli(),
 	}
 
 	// Copy relevant fields from the log event
 	if level, ok := logEvent["level"].(string); ok {
-		entry.URIPath = "internal/" + level // Include log level in the path
+		entry.Level = level
 	}
 
 	if msg, ok := logEvent["message"].(string); ok {
-		entry.ErrorMessage = msg
+		entry.Message = msg
 	}
 
 	// Include caller information if available
 	if caller, ok := logEvent["caller"].(string); ok {
-		entry.Referer = caller
+		entry.Caller = caller
 	}
 
 	// Include trace and span IDs if available
 	if traceID, ok := logEvent["trace_id"].(string); ok {
-		entry.TraceId = traceID
+		entry.TraceID = traceID
 	}
 
 	if spanID, ok := logEvent["span_id"].(string); ok {
-		entry.SpanId = spanID
+		entry.SpanID = spanID
 	}
 
 	// Publish to NATS

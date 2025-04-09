@@ -61,11 +61,11 @@ func (s *Service) GetApiStatisticService(ctx context.Context, serviceName, uri_p
 	res.ErrorRate = float32(errCount) / float32(count)
 	res.ErrorDist = errDist
 	res.ErrorDistTime = errTimeDist
-	res.Latency = s.GetLatencyService(ctx, logs, from, to, interval)
+	res.Latency, res.LatencyDist = s.GetLatencyService(ctx, logs, from, to, interval)
 	return res, nil
 }
 
-func (s *Service) GetLatencyService(ctx context.Context, logs []*Log, from, to int64, unit int64) map[string]int {
+func (s *Service) GetLatencyService(ctx context.Context, logs []*Log, from, to int64, unit int64) (map[string]int, map[int64]int) {
 	var latencies []int
 	for _, log := range logs {
 		latencies = append(latencies, int(log.Duration))
@@ -86,7 +86,26 @@ func (s *Service) GetLatencyService(ctx context.Context, logs []*Log, from, to i
 		"p95": latencies[int(float32(count)*float32(0.95))],
 		"p99": latencies[int(float32(count)*float32(0.99))],
 	}
-	return res
+	var resDist = map[int64]int{}
+	var sumDist = map[int64]int{}
+	_from := (from / unit) * unit
+	_to := (to / unit) * unit
+	for i := _from; i <= _to; i += unit {
+		resDist[i] = 0
+		sumDist[i] = 0
+	}
+	for _, l := range logs {
+		key := (int64(l.StartTime) / unit) * unit
+		resDist[key]++
+		sumDist[key] += int(l.Duration)
+	}
+	for k, v := range resDist {
+		if v == 0 {
+			continue
+		}
+		resDist[k] = sumDist[k] / v / 1000 // to ms
+	}
+	return res, resDist
 }
 
 func (s *Service) GetApiErrorService(ctx context.Context, logs []*Log, from, to, unit int64) (int, map[int]int, map[int64]int) {

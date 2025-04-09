@@ -65,7 +65,7 @@ function ApiUsage() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { data, loading, error, fetchData } = useFetchData(
-    "/api-statistics/called"
+    "/api-statistics/user-called"
   );
 
   // Form setup

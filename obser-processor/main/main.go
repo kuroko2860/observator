@@ -28,19 +28,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to NATS: %v", err)
 	}
+	fmt.Println("Connected to NATS")
 	defer nc.Close()
 
 	s := service.NewService(db)
 	// ---------------- http logs ----------------
 	// Simple Async Subscriber
-	go nc.Subscribe("logs", func(m *nats.Msg) {
+
+	_, err = nc.Subscribe("http-logs", func(m *nats.Msg) {
 		s.ReceiveNATSMsg(m)
 	})
+	if err != nil {
+		fmt.Println("Failed to subscribe to NATS topic:", err)
+		log.Fatal(err)
+	}
 	ticker := s.StartTickerUpdateData(config.INTERVAL)
 	// ---------------- http logs ----------------
 
 	// ---------------- trace data ----------------
-	s.StartProcessTrace(nc)
+	go s.StartProcessTrace(nc)
 	// ---------------- trace data ----------------
 
 	fmt.Println("Application is running. Press Ctrl+C to exit.")
@@ -75,5 +81,4 @@ func main() {
 		time.Sleep(1 * time.Second)
 		return
 	}
-
 }

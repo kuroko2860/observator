@@ -9,6 +9,8 @@ type SpanResponse struct {
 	Name          string            `json:"name"`
 	Timestamp     int64             `json:"timestamp"` // microseconds
 	Duration      int               `json:"duration"`  // microseconds
+	Events        []map[string]any  `json:"events"`
+	Links         []map[string]any  `json:"links"`
 	Tags          map[string]string `json:"tags"`
 }
 type SpanEndpoint struct {

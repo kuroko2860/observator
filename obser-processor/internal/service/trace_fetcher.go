@@ -30,13 +30,12 @@ func (s *Service) ProcessTrace(ctx context.Context, trace []*types.SpanResponse)
 
 		pathIds[pathId] = true
 		pathIdCollection.InsertOne(ctx, bson.M{"_id": pathId})
-	} else {
-		fmt.Printf("path %d already exists\n", pathId)
 	}
 	s.ProcessGraph(ctx, root, pathId)
 
 	for _, sr := range trace {
 		span := convertSrToSpan(sr)
+		span.PathID = pathId
 		spanCollection.InsertOne(ctx, span)
 	}
 

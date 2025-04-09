@@ -16,6 +16,7 @@ type ApiStatistic struct {
 	ErrorDist     map[int]int // err code with count
 	ErrorDistTime map[int64]int
 	Latency       map[string]int // max min p50 p99
+	LatencyDist   map[int64]int
 }
 type LongApiResponse struct {
 	Id struct {

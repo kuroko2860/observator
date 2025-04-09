@@ -79,7 +79,37 @@ type HttpLogEntry struct {
 }
 
 // PublishLogEntry publishes a log entry to NATS
-func PublishLogEntry(entry HttpLogEntry) {
+func PublishHttpRequestLogEntry(entry HttpLogEntry) {
+	natsMu.Lock()
+	defer natsMu.Unlock()
+
+	if natsConn == nil || !natsConn.IsConnected() {
+		log.Warn().Msg("Cannot publish http log entry: NATS not connected")
+		return
+	}
+
+	entryJSON, err := json.Marshal(entry)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to marshal http log entry")
+		return
+	}
+
+	err = natsConn.Publish("http-logs", entryJSON)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to publish http log to NATS")
+	}
+}
+
+type LogEntry struct {
+	Message   string `json:"message"`
+	Level     string `json:"level"`
+	Caller    string `json:"caller"`
+	TraceID   string `json:"trace_id"`
+	SpanID    string `json:"span_id"`
+	StartTime int64  `json:"start_time"`
+}
+
+func PublishLogEntry(entry LogEntry) {
 	natsMu.Lock()
 	defer natsMu.Unlock()
 

@@ -26,7 +26,6 @@ var hopCollection *qmgo.Collection
 var operationCollection *qmgo.Collection
 var pathEventCollection *qmgo.Collection
 var spanCollection *qmgo.Collection
-var timeCollection *qmgo.Collection // time in milliseconds  in db: 1739721982
 var pathIdCollection *qmgo.Collection
 var pathCollection *qmgo.Collection
 
@@ -46,7 +45,6 @@ func NewService(db *qmgo.Database) *Service {
 	operationCollection = s.Collection("operation")
 	pathEventCollection = s.Collection("path_event")
 	pathCollection = s.Collection("path")
-	timeCollection = s.Collection("time")
 	spanCollection = s.Collection("span")
 	pathIdCollection = s.Collection("path_id")
 
