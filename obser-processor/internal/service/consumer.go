@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	v1 "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
 	"google.golang.org/protobuf/proto"
@@ -22,7 +23,7 @@ import (
 var (
 	httpAddr   = flag.String("http.addr", ":8085", "HTTP listen address")
 	natsSubj   = flag.String("nats.subject", "otel-spans", "NATS subject for spans")
-	bufferTime = flag.Duration("buffer.time", 30*time.Second, "Time to buffer spans before processing")
+	bufferTime = flag.Duration("buffer.time", 5*time.Second, "Time to buffer spans before processing")
 )
 
 // TraceStore stores spans by trace ID
@@ -201,6 +202,7 @@ func (s *Service) StartProcessTrace(nc *nats.Conn) {
 			log.Printf("Failed to unmarshal message: %v", err)
 			return
 		}
+		msgCount.Add(float64(len(tracesData.ResourceSpans)))
 
 		// Process spans
 		for _, rs := range tracesData.ResourceSpans {
@@ -271,21 +273,12 @@ func (s *Service) StartProcessTrace(nc *nats.Conn) {
 		}
 	}()
 
-	// HTTP server for health checks and metrics
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
-
-	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		store.mu.RLock()
-		traceCount := len(store.traces)
-		store.mu.RUnlock()
-
-		fmt.Fprintf(w, "# HELP traces_count Number of traces in memory\n")
-		fmt.Fprintf(w, "# TYPE traces_count gauge\n")
-		fmt.Fprintf(w, "traces_count %d\n", traceCount)
-	})
+	// Expose HTTP server để Prometheus scrape
+	http.Handle("/metrics", promhttp.Handler())
+	go func() {
+		fmt.Println("Serving metrics at :2112/metrics")
+		http.ListenAndServe(":2112", nil)
+	}()
 
 	// Start HTTP server
 	server := &http.Server{

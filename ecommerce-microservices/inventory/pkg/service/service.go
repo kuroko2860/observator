@@ -163,7 +163,7 @@ func (s *basicInventoryService) UpdateInventory(ctx context.Context, orderID str
 
 	// Update inventory
 	for _, item := range items {
-		s.inventory[item]--
+		// s.inventory[item]--
 		logger.Debug().Str("item", item).Int("remaining", s.inventory[item]).Msg("Item quantity updated")
 	}
 

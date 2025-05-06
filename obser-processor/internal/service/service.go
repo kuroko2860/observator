@@ -32,6 +32,8 @@ var pathCollection *qmgo.Collection
 func NewService(db *qmgo.Database) *Service {
 	s := &Service{db}
 
+	s.init()
+
 	httpLogEntryCollection = s.Collection("http_log_entry")
 	alertGetCollection = s.Collection("alert_get")
 	statisticDoneCollection = s.Collection("statistic_done")

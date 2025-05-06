@@ -32,6 +32,7 @@ func main() {
 	defer nc.Close()
 
 	s := service.NewService(db)
+
 	// ---------------- http logs ----------------
 	// Simple Async Subscriber
 

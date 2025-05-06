@@ -1,42 +1,205 @@
+version: "3"
+
 services:
-  nats-server:
-    image: nats:latest
+  obser-processor:
+    build:
+      context: ./obser-processor
+      dockerfile: ./Dockerfile
     ports:
-      - 4222:4222
-  neo4j-db:
-    image: neo4j:latest
-    ports:
-      - 7474:7474
-      - 7687:7687
-    environment:
-      - NEO4J_AUTH=neo4j/123456789
-    volumes:
-      - ./neo4j:/data
+      - "8085:8085"
+    depends_on:
+      - mongo-db
+      - nats
+  # obser-analystics:
+  #   build:
+  #     context: ./obser-analystics
+  #     dockerfile: ./Dockerfile
+  #   ports:
+  #     - "8086:8086"
+  #   depends_on:
+  #     - mongo-db
+  # MongoDB service
   mongo-db:
     image: mongo:latest
     ports:
-      - 27017:27017
+      - "27017:27017"
     volumes:
       - ./mongo:/data/db
-  mock-zipkin:
-    build: ./mock-zipkin
+
+  # Prometheus service
+  prometheus:
+    image: prom/prometheus
     ports:
-      - 9411:9411
-  mock-nats:
-    build: ./mock-nats
-    depends_on:
-      - nats-server
-  obser-http-log:
-    build: ./obser-http-log
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
-    depends_on:
-      - mongo-db
-      - nats-server
-      - mock-nats
-  obser-trace:
-    build: ./obser-trace
+
+  # Grafana service
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
     restart: always
+
+  # Update checkout service to use NATS
+  checkout:
+    build:
+      context: ./ecommerce-microservices
+      dockerfile: checkout/Dockerfile
+    ports:
+      - "8080:8080"
     depends_on:
-      - neo4j-db
-      - mongo-db
-      - mock-zipkin
+      - nats
+    environment:
+      - ORDER_URL=http://order:8081
+      - NATS_URL=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_ENDPOINT=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=checkout-service
+    command:
+      [
+        "./checkout-service",
+        "-http.addr=:8080",
+        "-order.url=http://order:8081",
+        "-nats.url=nats://nats:4222",
+      ]
+
+  # Update order service to use NATS
+  order:
+    build:
+      context: ./ecommerce-microservices
+      dockerfile: order/Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - nats
+    environment:
+      - PAYMENT_URL=http://payment:8082
+      - INVENTORY_URL=inventory:50051
+      - ADDRESS_URL=http://address:8084
+      - NATS_URL=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_ENDPOINT=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=order-service
+    command:
+      [
+        "./order-service",
+        "-http.addr=:8081",
+        "-payment.url=http://payment:8082",
+        "-inventory.url=inventory:50051",
+        "-address.url=http://address:8084",
+        "-nats.url=nats://nats:4222",
+      ]
+
+  # Update payment service to use NATS
+  payment:
+    build:
+      context: ./ecommerce-microservices
+      dockerfile: payment/Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      - nats
+    environment:
+      - NATS_URL=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_ENDPOINT=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=payment-service
+    command:
+      ["./payment-service", "-http.addr=:8082", "-nats.url=nats://nats:4222"]
+
+  # Update inventory service to use NATS
+  inventory:
+    build:
+      context: ./ecommerce-microservices
+      dockerfile: inventory/Dockerfile
+    ports:
+      - "8083:8083"
+    depends_on:
+      - nats
+    environment:
+      - NATS_URL=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_ENDPOINT=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=inventory-service
+    command:
+      [
+        "./inventory-service",
+        "-http.addr=:8083",
+        "-grpc.addr=:50051",
+        "-nats.url=nats://nats:4222",
+      ]
+
+  # Update address service to use NATS
+  address:
+    build:
+      context: ./ecommerce-microservices
+      dockerfile: address/Dockerfile
+    ports:
+      - "8084:8084"
+    depends_on:
+      - nats
+    environment:
+      - NATS_URL=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_ENDPOINT=nats://nats:4222
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=address-service
+    command:
+      ["./address-service", "-http.addr=:8084", "-nats.url=nats://nats:4222"]
+
+  # NATS service configuration
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["--jetstream"]
+
+  # Keep the rest of the services unchanged
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./elasticsearch-data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+
+  logstash:
+    build:
+      context: ./logstash
+      dockerfile: Dockerfile
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    depends_on:
+      - elasticsearch
+      - nats
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      - ./k6-load-test.js:/scripts/k6-load-test.js
+    entrypoint: ["tail", "-f", "/dev/null"] # disable k6 entrypoint
+    depends_on:
+      - checkout

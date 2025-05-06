@@ -9,6 +9,7 @@ import (
 )
 
 func (s *Service) ReceiveNATSMsg(m *nats.Msg) error {
+	msgCount.Inc()
 	entry := types.HttpLogEntry{}
 	err := json.Unmarshal(m.Data, &entry)
 	if err != nil {

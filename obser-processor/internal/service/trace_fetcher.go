@@ -6,12 +6,26 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
 	"kuroko.com/processor/internal/types"
 )
 
 var pathIds map[uint32]bool
+
+var (
+	msgCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "pipeline_messages_consumed_total",
+			Help: "Tổng số message",
+		},
+	)
+)
+
+func (s *Service) init() {
+	prometheus.MustRegister(msgCount)
+}
 
 func (s *Service) ProcessTrace(ctx context.Context, trace []*types.SpanResponse) error {
 	root, err := s.ConvertTraceToGraph(ctx, trace)

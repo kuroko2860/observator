@@ -74,7 +74,7 @@ const OperationLog = ({ traceId, spanId }) => {
 
   const getSeverityFromLog = (log) => {
     // Determine log severity based on status code or log level
-    if (log.status_code >= 500 || log.uri_path?.includes("internal/error")) {
+    if (log.status_code >= 500 || log.level?.includes("error")) {
       return "error";
     } else if (
       log.status_code >= 400 ||
@@ -88,11 +88,8 @@ const OperationLog = ({ traceId, spanId }) => {
   const formatLogEntry = (log) => {
     const timestamp = new Date(log.start_time).toISOString();
     const service = log.service_name || "unknown";
-    const method = log.method || "";
-    const path = log.uri_path || "";
-    const status = log.status_code || "";
-    const duration = log.duration ? `${log.duration}ms` : "";
-    const message = log.error_message || "Request completed";
+    const message = log.message || "unknown";
+    const caller = log.caller || "unknown";
 
     return (
       <LogEntry
@@ -103,28 +100,15 @@ const OperationLog = ({ traceId, spanId }) => {
           <strong>Time:</strong> {timestamp}
         </Typography>
         <Typography variant="body2" component="div">
-          <strong>Service:</strong> {service} | <strong>Method:</strong>{" "}
-          {method} | <strong>Path:</strong> {path}
+          <strong>Service:</strong> {service}
         </Typography>
-        {status && (
-          <Typography variant="body2" component="div">
-            <strong>Status:</strong> {status} | <strong>Duration:</strong>{" "}
-            {duration}
-          </Typography>
-        )}
+        <Typography variant="body2" component="div">
+          <strong>Caller:</strong> {caller}
+        </Typography>
+
         <Typography variant="body2" component="div">
           <strong>Message:</strong> {message}
         </Typography>
-        {log.trace_id && (
-          <Typography variant="body2" component="div">
-            <strong>Trace ID:</strong> {log.trace_id}
-          </Typography>
-        )}
-        {log.span_id && (
-          <Typography variant="body2" component="div">
-            <strong>Span ID:</strong> {log.span_id}
-          </Typography>
-        )}
       </LogEntry>
     );
   };
