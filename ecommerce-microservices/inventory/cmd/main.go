@@ -101,7 +101,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(otelecho.Middleware("inventory-service"))
-	e.Use(createLoggingMiddleware("inventory-service"))
+	// e.Use(createLoggingMiddleware("inventory-service"))
 
 	// Register routes
 	inventoryHandler.RegisterRoutes(e)

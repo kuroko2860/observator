@@ -87,7 +87,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(otelecho.Middleware("checkout-service"))
-	e.Use(createLoggingMiddleware("checkout-service"))
+	// e.Use(createLoggingMiddleware("checkout-service"))
 
 	// Register routes
 	checkoutHandler.RegisterRoutes(e)

@@ -77,7 +77,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(otelecho.Middleware("payment-service"))
-	e.Use(createLoggingMiddleware("payment-service"))
+	// e.Use(createLoggingMiddleware("payment-service"))
 
 	// Register routes
 	paymentHandler.RegisterRoutes(e)
