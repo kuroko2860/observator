@@ -90,7 +90,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	// e.Use(otelecho.Middleware("order-service"))
-	e.Use(createLoggingMiddleware("order-service"))
+	// e.Use(createLoggingMiddleware("order-service"))
 
 	// Register routes
 	orderHandler.RegisterRoutes(e)

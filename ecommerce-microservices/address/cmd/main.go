@@ -75,7 +75,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	// e.Use(otelecho.Middleware("address-service"))
-	e.Use(createLoggingMiddleware("address-service"))
+	// e.Use(createLoggingMiddleware("address-service"))
 
 	// Register routes
 	addressHandler.RegisterRoutes(e)
