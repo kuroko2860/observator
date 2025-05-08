@@ -14,13 +14,11 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/address/pkg/handler"
 	"kltn/ecommerce-microservices/address/pkg/service"
 	"kltn/ecommerce-microservices/pkg/logging"
-	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 func main() {
@@ -57,12 +55,12 @@ func main() {
 	}
 
 	// Initialize the tracer
-	shutdown, err := tracing.InitTracer("address-service", *natsURL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize tracer")
-		os.Exit(1)
-	}
-	defer shutdown(context.Background())
+	// shutdown, err := tracing.InitTracer("address-service", *natsURL)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to initialize tracer")
+	// 	os.Exit(1)
+	// }
+	// defer shutdown(context.Background())
 
 	// Create the service
 	svc := service.NewAddressService()
@@ -76,7 +74,7 @@ func main() {
 	// Add middleware
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(otelecho.Middleware("address-service"))
+	// e.Use(otelecho.Middleware("address-service"))
 	e.Use(createLoggingMiddleware("address-service"))
 
 	// Register routes

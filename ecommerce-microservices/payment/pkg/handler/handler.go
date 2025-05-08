@@ -5,8 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/payment/pkg/service"
@@ -36,9 +34,9 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := otel.Tracer("payment-handler")
-	ctx, span := tracer.Start(ctx, "CalculateMoney-Handler")
-	defer span.End()
+	// tracer := otel.Tracer("payment-handler")
+	// ctx, span := tracer.Start(ctx, "CalculateMoney-Handler")
+	// defer span.End()
 
 	// Parse request
 	var req struct {
@@ -48,9 +46,9 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
@@ -71,9 +69,9 @@ func (h *PaymentHandler) CalculateMoney(c echo.Context) error {
 	amount, err := h.service.CalculateMoney(ctx, req.OrderID, req.Items)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Calculate money failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -93,9 +91,9 @@ func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := otel.Tracer("payment-handler")
-	ctx, span := tracer.Start(ctx, "ApplyCoupon-Handler")
-	defer span.End()
+	// tracer := otel.Tracer("payment-handler")
+	// ctx, span := tracer.Start(ctx, "ApplyCoupon-Handler")
+	// defer span.End()
 
 	// Parse request
 	var req struct {
@@ -106,9 +104,9 @@ func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
@@ -130,9 +128,9 @@ func (h *PaymentHandler) ApplyCoupon(c echo.Context) error {
 	discountedAmount, err := h.service.ApplyCoupon(ctx, req.OrderID, req.CouponCode, req.Amount)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Apply coupon failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

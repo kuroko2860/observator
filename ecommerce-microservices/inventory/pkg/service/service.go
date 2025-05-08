@@ -5,8 +5,6 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	pb "kltn/ecommerce-microservices/inventory/proto"
@@ -32,9 +30,9 @@ func NewGRPCServer(svc InventoryService) *GRPCServer {
 // UpdateInventory implements the gRPC method
 func (s *GRPCServer) UpdateInventory(ctx context.Context, req *pb.UpdateInventoryRequest) (*pb.UpdateInventoryResponse, error) {
 	// Create a span for this gRPC method
-	tracer := otel.Tracer("inventory-grpc")
-	ctx, span := tracer.Start(ctx, "UpdateInventory-gRPC")
-	defer span.End()
+	// tracer := otel.Tracer("inventory-grpc")
+	// ctx, span := tracer.Start(ctx, "UpdateInventory-gRPC")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -50,9 +48,9 @@ func (s *GRPCServer) UpdateInventory(ctx context.Context, req *pb.UpdateInventor
 	err := s.svc.UpdateInventory(ctx, req.OrderId, req.Items)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to update inventory")
 		return &pb.UpdateInventoryResponse{Error: err.Error()}, nil
@@ -65,9 +63,9 @@ func (s *GRPCServer) UpdateInventory(ctx context.Context, req *pb.UpdateInventor
 // VerifyInventory implements the gRPC method
 func (s *GRPCServer) VerifyInventory(ctx context.Context, req *pb.VerifyInventoryRequest) (*pb.VerifyInventoryResponse, error) {
 	// Create a span for this gRPC method
-	tracer := otel.Tracer("inventory-grpc")
-	ctx, span := tracer.Start(ctx, "VerifyInventory-gRPC")
-	defer span.End()
+	// tracer := otel.Tracer("inventory-grpc")
+	// ctx, span := tracer.Start(ctx, "VerifyInventory-gRPC")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -82,9 +80,9 @@ func (s *GRPCServer) VerifyInventory(ctx context.Context, req *pb.VerifyInventor
 	available, err := s.svc.VerifyInventory(ctx, req.Items)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to verify inventory")
 		return &pb.VerifyInventoryResponse{Error: err.Error()}, nil
@@ -115,9 +113,9 @@ func NewInventoryService() InventoryService {
 // UpdateInventory implements InventoryService
 func (s *basicInventoryService) UpdateInventory(ctx context.Context, orderID string, items []string) error {
 	// Create a span for the update inventory operation
-	tracer := otel.Tracer("inventory-service")
-	ctx, span := tracer.Start(ctx, "UpdateInventory")
-	defer span.End()
+	// tracer := otel.Tracer("inventory-service")
+	// ctx, span := tracer.Start(ctx, "UpdateInventory")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -129,19 +127,19 @@ func (s *basicInventoryService) UpdateInventory(ctx context.Context, orderID str
 		Logger()
 
 	// Add attributes to the span
-	span.SetAttributes(
-		attribute.String("order.id", orderID),
-		attribute.Int("items.count", len(items)),
-	)
+	// span.SetAttributes(
+	// 	attribute.String("order.id", orderID),
+	// 	attribute.Int("items.count", len(items)),
+	// )
 
 	logger.Debug().Msg("Starting inventory update")
 
 	if len(items) == 0 {
 		err := errors.New("no items to update")
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Update failed")
 		return err
@@ -152,9 +150,9 @@ func (s *basicInventoryService) UpdateInventory(ctx context.Context, orderID str
 		if s.inventory[item] <= 0 {
 			err := errors.New("item out of stock: " + item)
 			// Add error tag to span
-			span.SetAttributes(attribute.Bool("error", true))
-			span.SetAttributes(attribute.String("error.message", err.Error()))
-			span.RecordError(err)
+			// span.SetAttributes(attribute.Bool("error", true))
+			// span.SetAttributes(attribute.String("error.message", err.Error()))
+			// span.RecordError(err)
 
 			logger.Error().Err(err).Str("item", item).Msg("Item out of stock")
 			return err
@@ -174,9 +172,9 @@ func (s *basicInventoryService) UpdateInventory(ctx context.Context, orderID str
 // VerifyInventory implements InventoryService
 func (s *basicInventoryService) VerifyInventory(ctx context.Context, items []string) (bool, error) {
 	// Create a span for the verify inventory operation
-	tracer := otel.Tracer("inventory-service")
-	ctx, span := tracer.Start(ctx, "VerifyInventory")
-	defer span.End()
+	// tracer := otel.Tracer("inventory-service")
+	// ctx, span := tracer.Start(ctx, "VerifyInventory")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -187,18 +185,18 @@ func (s *basicInventoryService) VerifyInventory(ctx context.Context, items []str
 		Logger()
 
 	// Add attributes to the span
-	span.SetAttributes(
-		attribute.Int("items.count", len(items)),
-	)
+	// span.SetAttributes(
+	// 	attribute.Int("items.count", len(items)),
+	// )
 
 	logger.Debug().Msg("Starting inventory verification")
 
 	if len(items) == 0 {
 		err := errors.New("no items to verify")
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Verification failed")
 		return false, err
@@ -208,12 +206,12 @@ func (s *basicInventoryService) VerifyInventory(ctx context.Context, items []str
 	for _, item := range items {
 		if s.inventory[item] <= 0 {
 			logger.Info().Str("item", item).Msg("Item not available")
-			span.SetAttributes(attribute.Bool("inventory.available", false))
+			// span.SetAttributes(attribute.Bool("inventory.available", false))
 			return false, nil
 		}
 	}
 
 	logger.Info().Msg("All items available")
-	span.SetAttributes(attribute.Bool("inventory.available", true))
+	// span.SetAttributes(attribute.Bool("inventory.available", true))
 	return true, nil
 }

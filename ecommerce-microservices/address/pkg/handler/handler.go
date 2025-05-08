@@ -5,8 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/address/pkg/service"
@@ -35,9 +33,9 @@ func (h *AddressHandler) GetAddress(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := otel.Tracer("address-handler")
-	ctx, span := tracer.Start(ctx, "GetAddress-Handler")
-	defer span.End()
+	// tracer := otel.Tracer("address-handler")
+	// ctx, span := tracer.Start(ctx, "GetAddress-Handler")
+	// defer span.End()
 
 	// Get user ID from path parameter
 	userID := c.Param("user_id")
@@ -56,9 +54,9 @@ func (h *AddressHandler) GetAddress(c echo.Context) error {
 	address, err := h.service.GetAddress(ctx, userID)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Get address failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

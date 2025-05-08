@@ -5,8 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/inventory/pkg/service"
@@ -36,9 +34,9 @@ func (h *InventoryHandler) VerifyInventory(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := otel.Tracer("inventory-handler")
-	ctx, span := tracer.Start(ctx, "VerifyInventory")
-	defer span.End()
+	// tracer := otel.Tracer("inventory-handler")
+	// ctx, span := tracer.Start(ctx, "VerifyInventory")
+	// defer span.End()
 
 	// Parse request
 	var req struct {
@@ -47,9 +45,9 @@ func (h *InventoryHandler) VerifyInventory(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
@@ -69,9 +67,9 @@ func (h *InventoryHandler) VerifyInventory(c echo.Context) error {
 	available, err := h.service.VerifyInventory(ctx, req.Items)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Inventory verification failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -91,9 +89,9 @@ func (h *InventoryHandler) UpdateInventory(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	// Create a span for this handler
-	tracer := otel.Tracer("inventory-handler")
-	ctx, span := tracer.Start(ctx, "UpdateInventory")
-	defer span.End()
+	// tracer := otel.Tracer("inventory-handler")
+	// ctx, span := tracer.Start(ctx, "UpdateInventory")
+	// defer span.End()
 
 	// Parse request
 	var req struct {
@@ -103,9 +101,9 @@ func (h *InventoryHandler) UpdateInventory(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		log.Error().Err(err).Msg("Invalid request")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
@@ -126,9 +124,9 @@ func (h *InventoryHandler) UpdateInventory(c echo.Context) error {
 	err := h.service.UpdateInventory(ctx, req.OrderID, req.Items)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Inventory update failed")
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

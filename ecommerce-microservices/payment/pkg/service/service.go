@@ -5,8 +5,6 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -26,9 +24,9 @@ func NewPaymentService() PaymentService {
 // CalculateMoney implements PaymentService
 func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, items []string) (float64, error) {
 	// Create a span for the calculate money operation
-	tracer := otel.Tracer("payment-service")
-	ctx, span := tracer.Start(ctx, "CalculateMoney-Service")
-	defer span.End()
+	// tracer := otel.Tracer("payment-service")
+	// ctx, span := tracer.Start(ctx, "CalculateMoney-Service")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -40,19 +38,19 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 		Logger()
 
 	// Add attributes to the span
-	span.SetAttributes(
-		attribute.String("order.id", orderID),
-		attribute.Int("items.count", len(items)),
-	)
+	// span.SetAttributes(
+	// 	attribute.String("order.id", orderID),
+	// 	attribute.Int("items.count", len(items)),
+	// )
 
 	logger.Debug().Msg("Starting payment calculation")
 
 	if len(items) == 0 {
 		err := errors.New("no items to calculate")
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Payment calculation failed")
 		return 0, err
@@ -62,7 +60,7 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 	// For simplicity, we'll just use a fixed price per item
 	total := float64(len(items)) * 10.0
 
-	span.SetAttributes(attribute.Float64("total.amount", total))
+	// span.SetAttributes(attribute.Float64("total.amount", total))
 	logger.Info().Float64("amount", total).Msg("Payment calculated successfully")
 	return total, nil
 }
@@ -70,9 +68,9 @@ func (s *paymentService) CalculateMoney(ctx context.Context, orderID string, ite
 // ApplyCoupon implements PaymentService
 func (s *paymentService) ApplyCoupon(ctx context.Context, orderID string, couponCode string, amount float64) (float64, error) {
 	// Create a span for the apply coupon operation
-	tracer := otel.Tracer("payment-service")
-	ctx, span := tracer.Start(ctx, "ApplyCoupon-Service")
-	defer span.End()
+	// tracer := otel.Tracer("payment-service")
+	// ctx, span := tracer.Start(ctx, "ApplyCoupon-Service")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -85,11 +83,11 @@ func (s *paymentService) ApplyCoupon(ctx context.Context, orderID string, coupon
 		Logger()
 
 	// Add attributes to the span
-	span.SetAttributes(
-		attribute.String("order.id", orderID),
-		attribute.String("coupon.code", couponCode),
-		attribute.Float64("original.amount", amount),
-	)
+	// span.SetAttributes(
+	// 	attribute.String("order.id", orderID),
+	// 	attribute.String("coupon.code", couponCode),
+	// 	attribute.Float64("original.amount", amount),
+	// )
 
 	logger.Debug().Msg("Applying coupon")
 
@@ -102,7 +100,7 @@ func (s *paymentService) ApplyCoupon(ctx context.Context, orderID string, coupon
 	// For simplicity, we'll just apply a 10% discount for any coupon
 	discountedAmount := amount * 0.9
 
-	span.SetAttributes(attribute.Float64("discounted.amount", discountedAmount))
+	// span.SetAttributes(attribute.Float64("discounted.amount", discountedAmount))
 	logger.Info().
 		Float64("original_amount", amount).
 		Float64("discounted_amount", discountedAmount).

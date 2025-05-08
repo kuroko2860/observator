@@ -10,8 +10,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -59,9 +57,9 @@ func NewOrderService(paymentURL, inventoryURL, addressURL string, client *http.C
 // CreateOrder implements OrderService
 func (s *orderService) CreateOrder(ctx context.Context, userID string, items []string) (string, error) {
 	// Create a span for the create order operation
-	tracer := otel.Tracer("order-service")
-	ctx, span := tracer.Start(ctx, "CreateOrder-service")
-	defer span.End()
+	// tracer := otel.Tracer("order-service")
+	// ctx, span := tracer.Start(ctx, "CreateOrder-service")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -73,19 +71,19 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		Logger()
 
 	// Add attributes to the span
-	span.SetAttributes(
-		attribute.String("user.id", userID),
-		attribute.Int("items.count", len(items)),
-	)
+	// span.SetAttributes(
+	// 	attribute.String("user.id", userID),
+	// 	attribute.Int("items.count", len(items)),
+	// )
 
 	logger.Debug().Msg("Starting order creation process")
 
 	if len(items) == 0 {
 		err := errors.New("no items in order")
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Order creation failed")
 		return "", err
@@ -93,14 +91,14 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	// 1. Get user address
 	logger.Debug().Msg("Getting user address")
-	span.AddEvent("Getting user address")
+	// span.AddEvent("Getting user address")
 	addressReq, err := http.NewRequestWithContext(ctx, "GET",
 		fmt.Sprintf("%s/address/%s", s.addressServiceURL, userID), nil)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to create address request")
 		return "", fmt.Errorf("failed to create address request: %w", err)
@@ -109,9 +107,9 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 	addressResp, err := s.httpClient.Do(addressReq)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to get user address")
 		return "", fmt.Errorf("failed to get user address: %w", err)
@@ -121,9 +119,9 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 	if addressResp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("address service returned status: %d", addressResp.StatusCode)
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Int("status_code", addressResp.StatusCode).Msg("Address service error")
 		return "", err
@@ -131,15 +129,15 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	// 2. Verify inventory using gRPC
 	logger.Debug().Msg("Verifying inventory")
-	span.AddEvent("Verifying inventory")
+	// span.AddEvent("Verifying inventory")
 	verifyResp, err := s.inventoryClient.VerifyInventory(ctx, &proto.VerifyInventoryRequest{
 		Items: items,
 	})
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to verify inventory")
 		return "", fmt.Errorf("failed to verify inventory: %w", err)
@@ -151,9 +149,9 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 			err = errors.New(verifyResp.Error)
 		}
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Inventory verification failed")
 		return "", err
@@ -161,28 +159,28 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	// 3. Update inventory using gRPC
 	logger.Debug().Msg("Updating inventory")
-	span.AddEvent("Updating inventory")
+	// span.AddEvent("Updating inventory")
 	orderID := "order-" + userID + "-123"
 	updateResp, err := s.inventoryClient.UpdateInventory(ctx, &proto.UpdateInventoryRequest{
 		OrderId: orderID,
 		Items:   items,
 	})
 	if err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to update inventory")
 		return "", fmt.Errorf("failed to update inventory: %w", err)
 	}
 
 	if updateResp.Error != "" {
 		err = errors.New(updateResp.Error)
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Inventory update failed")
 		return "", err
 	}
 
 	// 4. Process payment
 	logger.Debug().Msg("Processing payment")
-	span.AddEvent("Processing payment")
+	// span.AddEvent("Processing payment")
 	paymentReq := struct {
 		UserID  string   `json:"user_id"`
 		OrderID string   `json:"order_id"`
@@ -195,7 +193,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	paymentJSON, err := json.Marshal(paymentReq)
 	if err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to marshal payment request")
 		return "", fmt.Errorf("failed to marshal payment request: %w", err)
 	}
@@ -203,7 +201,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 	paymentReqObj, err := http.NewRequestWithContext(ctx, "POST",
 		fmt.Sprintf("%s/calculate-money", s.paymentServiceURL), bytes.NewBuffer(paymentJSON))
 	if err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to create payment request")
 		return "", fmt.Errorf("failed to create payment request: %w", err)
 	}
@@ -211,7 +209,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	paymentResp, err := s.httpClient.Do(paymentReqObj)
 	if err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Payment service request failed")
 		return "", fmt.Errorf("failed to process payment: %w", err)
 	}
@@ -219,7 +217,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	if paymentResp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("payment service returned status: %d", paymentResp.StatusCode)
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Int("status_code", paymentResp.StatusCode).Msg("Payment service error")
 		return "", err
 	}
@@ -229,14 +227,14 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		Amount float64 `json:"amount"`
 	}
 	if err := json.NewDecoder(paymentResp.Body).Decode(&paymentRespBody); err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to decode payment response")
 		return "", fmt.Errorf("failed to decode payment response: %w", err)
 	}
 
 	// 4.1 Apply coupon if available (for this example, we'll use a fixed coupon code)
 	logger.Debug().Msg("Applying coupon")
-	span.AddEvent("Applying coupon")
+	// span.AddEvent("Applying coupon")
 
 	// In a real implementation, the coupon code would come from the request
 	// For this example, we'll use a fixed coupon code "DISCOUNT10"
@@ -254,7 +252,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	couponJSON, err := json.Marshal(couponReq)
 	if err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to marshal coupon request")
 		return "", fmt.Errorf("failed to marshal coupon request: %w", err)
 	}
@@ -262,7 +260,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 	couponReqObj, err := http.NewRequestWithContext(ctx, "POST",
 		fmt.Sprintf("%s/apply-coupon", s.paymentServiceURL), bytes.NewBuffer(couponJSON))
 	if err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to create coupon request")
 		return "", fmt.Errorf("failed to create coupon request: %w", err)
 	}
@@ -270,7 +268,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	couponResp, err := s.httpClient.Do(couponReqObj)
 	if err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Coupon service request failed")
 		return "", fmt.Errorf("failed to apply coupon: %w", err)
 	}
@@ -278,7 +276,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	if couponResp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("coupon service returned status: %d", couponResp.StatusCode)
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Int("status_code", couponResp.StatusCode).Msg("Coupon service error")
 		return "", err
 	}
@@ -288,7 +286,7 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 		DiscountedAmount float64 `json:"discounted_amount"`
 	}
 	if err := json.NewDecoder(couponResp.Body).Decode(&couponRespBody); err != nil {
-		span.RecordError(err)
+		// span.RecordError(err)
 		logger.Error().Err(err).Msg("Failed to decode coupon response")
 		return "", fmt.Errorf("failed to decode coupon response: %w", err)
 	}
@@ -301,15 +299,15 @@ func (s *orderService) CreateOrder(ctx context.Context, userID string, items []s
 
 	// 5. Create order record in database (simulated)
 	logger.Debug().Msg("Creating order record")
-	span.AddEvent("Creating order record")
+	// span.AddEvent("Creating order record")
 	// In a real implementation, this would save to a database
 	// For now, we just log and return the order ID
 
-	span.SetAttributes(
-		attribute.String("order.id", orderID),
-		attribute.Float64("order.amount", couponRespBody.DiscountedAmount),
-		attribute.String("coupon.code", couponCode),
-	)
+	// span.SetAttributes(
+	// 	attribute.String("order.id", orderID),
+	// 	attribute.Float64("order.amount", couponRespBody.DiscountedAmount),
+	// 	attribute.String("coupon.code", couponCode),
+	// )
 	logger.Info().
 		Str("order_id", orderID).
 		Str("user_id", userID).

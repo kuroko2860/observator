@@ -5,8 +5,6 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -56,9 +54,9 @@ func NewAddressService() AddressService {
 // GetAddress implements AddressService
 func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Address, error) {
 	// Create a span for the get address operation
-	tracer := otel.Tracer("address-service")
-	ctx, span := tracer.Start(ctx, "GetAddress-service")
-	defer span.End()
+	// tracer := otel.Tracer("address-service")
+	// ctx, span := tracer.Start(ctx, "GetAddress-service")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -69,18 +67,18 @@ func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Ad
 		Logger()
 
 	// Add attributes to the span
-	span.SetAttributes(
-		attribute.String("user.id", userID),
-	)
+	// span.SetAttributes(
+	// 	attribute.String("user.id", userID),
+	// )
 
 	logger.Debug().Msg("Getting address for user")
 
 	if userID == "" {
 		err := errors.New("user ID is required")
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("User ID is required")
 		return Address{}, err
@@ -90,9 +88,9 @@ func (s *basicAddressService) GetAddress(ctx context.Context, userID string) (Ad
 	if !exists {
 		err := errors.New("address not found for user: " + userID)
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Address not found")
 		return Address{}, err

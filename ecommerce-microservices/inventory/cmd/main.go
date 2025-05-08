@@ -15,7 +15,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
@@ -24,7 +23,6 @@ import (
 	"kltn/ecommerce-microservices/inventory/pkg/service"
 	pb "kltn/ecommerce-microservices/inventory/proto"
 	"kltn/ecommerce-microservices/pkg/logging"
-	"kltn/ecommerce-microservices/pkg/tracing"
 )
 
 func main() {
@@ -62,12 +60,12 @@ func main() {
 	}
 
 	// Initialize the tracer
-	shutdown, err := tracing.InitTracer("inventory-service", *natsURL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize tracer")
-		os.Exit(1)
-	}
-	defer shutdown(context.Background())
+	// shutdown, err := tracing.InitTracer("inventory-service", *natsURL)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to initialize tracer")
+	// 	os.Exit(1)
+	// }
+	// defer shutdown(context.Background())
 
 	// Create the service
 	svc := service.NewInventoryService()
@@ -100,7 +98,7 @@ func main() {
 	// Add middleware
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(otelecho.Middleware("inventory-service"))
+	// e.Use(otelecho.Middleware("inventory-service"))
 	e.Use(createLoggingMiddleware("inventory-service"))
 
 	// Register routes

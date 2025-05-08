@@ -15,7 +15,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/order/pkg/handler"
@@ -62,12 +61,12 @@ func main() {
 	}
 
 	// Initialize the tracer
-	shutdown, err := tracing.InitTracer("order-service", *natsURL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize tracer")
-		os.Exit(1)
-	}
-	defer shutdown(context.Background())
+	// shutdown, err := tracing.InitTracer("order-service", *natsURL)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to initialize tracer")
+	// 	os.Exit(1)
+	// }
+	// defer shutdown(context.Background())
 
 	// Create an instrumented HTTP client for service-to-service communication
 	httpClient := tracing.NewTracedHTTPClient()
@@ -90,7 +89,7 @@ func main() {
 	// Add middleware
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(otelecho.Middleware("order-service"))
+	// e.Use(otelecho.Middleware("order-service"))
 	e.Use(createLoggingMiddleware("order-service"))
 
 	// Register routes

@@ -8,8 +8,6 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -34,9 +32,9 @@ func NewCheckoutService(orderServiceURL string, client *http.Client) CheckoutSer
 // UserCheckout implements CheckoutService
 func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items []string) (string, error) {
 	// Create a span for the checkout operation
-	tracer := otel.Tracer("checkout-service")
-	ctx, span := tracer.Start(ctx, "UserCheckout-service")
-	defer span.End()
+	// tracer := otel.Tracer("checkout-service")
+	// ctx, span := tracer.Start(ctx, "UserCheckout-service")
+	// defer span.End()
 
 	// Extract trace context for logging
 	spanContext := trace.SpanContextFromContext(ctx)
@@ -46,19 +44,19 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 		Logger()
 
 	// Add attributes to the span
-	span.SetAttributes(
-		attribute.String("user.id", userID),
-		attribute.Int("items.count", len(items)),
-	)
+	// span.SetAttributes(
+	// 	attribute.String("user.id", userID),
+	// 	attribute.Int("items.count", len(items)),
+	// )
 
 	logger.Debug().Msg("Starting checkout process")
 
 	if len(items) == 0 {
 		err := errors.New("no items in cart")
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Checkout failed")
 		return "", err
@@ -79,9 +77,9 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to marshal request")
 		return "", err
@@ -93,9 +91,9 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	req, err := http.NewRequestWithContext(ctx, "POST", s.orderServiceURL+"/orders", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to create request")
 		return "", err
@@ -109,9 +107,9 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Order service request failed")
 		return "", err
@@ -122,9 +120,9 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 	if resp.StatusCode != http.StatusOK {
 		err = errors.New("failed to create order")
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().
 			Err(err).
@@ -140,9 +138,9 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 
 	if err := json.NewDecoder(resp.Body).Decode(&orderResponse); err != nil {
 		// Add error tag to span
-		span.SetAttributes(attribute.Bool("error", true))
-		span.SetAttributes(attribute.String("error.message", err.Error()))
-		span.RecordError(err)
+		// span.SetAttributes(attribute.Bool("error", true))
+		// span.SetAttributes(attribute.String("error.message", err.Error()))
+		// span.RecordError(err)
 
 		logger.Error().Err(err).Msg("Failed to decode response")
 		return "", err
@@ -150,8 +148,8 @@ func (s *checkoutService) UserCheckout(ctx context.Context, userID string, items
 
 	orderID := orderResponse.OrderID
 
-	span.SetAttributes(attribute.String("order.id", orderID))
-	span.AddEvent("Order Service call completed")
+	// span.SetAttributes(attribute.String("order.id", orderID))
+	// span.AddEvent("Order Service call completed")
 
 	logger.Info().
 		Str("order_id", orderID).

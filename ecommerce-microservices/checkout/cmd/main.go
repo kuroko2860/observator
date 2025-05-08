@@ -16,7 +16,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/checkout/pkg/handler"
@@ -60,12 +59,12 @@ func main() {
 	}
 
 	// Initialize the tracer
-	shutdown, err := tracing.InitTracer("checkout-service", *natsURL)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize tracer")
-		os.Exit(1)
-	}
-	defer shutdown(context.Background())
+	// shutdown, err := tracing.InitTracer("checkout-service", *natsURL)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to initialize tracer")
+	// 	os.Exit(1)
+	// }
+	// defer shutdown(context.Background())
 
 	httpClient := tracing.NewTracedHTTPClient()
 
@@ -86,7 +85,7 @@ func main() {
 	// Add middleware
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(otelecho.Middleware("checkout-service"))
+	// e.Use(otelecho.Middleware("checkout-service"))
 	e.Use(createLoggingMiddleware("checkout-service"))
 
 	// Register routes
