@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -11,6 +14,41 @@ import (
 
 	"kltn/ecommerce-microservices/checkout/pkg/service"
 )
+
+var httpDurationMs *prometheus.HistogramVec
+
+func init() {
+	fmt.Println("Initializing metrics...")
+	httpDurationMs = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "http_request_duration_milliseconds",
+		Help:    "Histogram of HTTP request latency in milliseconds.",
+		Buckets: prometheus.ExponentialBuckets(1, 2, 10), // 1ms, 2ms, 4ms, ... ~500ms
+	}, []string{"path", "method", "status"})
+
+	prometheus.MustRegister(httpDurationMs)
+}
+
+func MetricsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		start := time.Now()
+		err := next(c)
+		durationMs := float64(time.Since(start).Milliseconds())
+
+		status := http.StatusOK
+		if err != nil {
+			if he, ok := err.(*echo.HTTPError); ok {
+				status = he.Code
+			} else {
+				status = http.StatusInternalServerError
+			}
+		} else {
+			status = c.Response().Status
+		}
+
+		httpDurationMs.WithLabelValues(c.Path(), c.Request().Method, http.StatusText(status)).Observe(durationMs)
+		return err
+	}
+}
 
 // CheckoutHandler handles HTTP requests for the checkout service
 type CheckoutHandler struct {
@@ -26,7 +64,7 @@ func NewCheckoutHandler(svc service.CheckoutService) *CheckoutHandler {
 
 // RegisterRoutes registers the handler routes with the Echo instance
 func (h *CheckoutHandler) RegisterRoutes(e *echo.Echo) {
-	e.POST("/checkout", h.UserCheckout)
+	e.POST("/checkout", h.UserCheckout, MetricsMiddleware)
 }
 
 // UserCheckout handles the checkout request

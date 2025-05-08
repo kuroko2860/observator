@@ -13,6 +13,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
@@ -78,6 +79,9 @@ func main() {
 
 	// Create Echo instance
 	e := echo.New()
+
+	// Expose endpoint /metrics
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	// Add middleware
 	e.Use(middleware.Recover())

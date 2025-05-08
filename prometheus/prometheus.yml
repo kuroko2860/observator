@@ -6,3 +6,6 @@ scrape_configs:
   - job_name: "obser-processor"
     static_configs:
       - targets: ["obser-processor:2112"]
+  - job_name: "checkout-service"
+    static_configs:
+      - targets: ["checkout:8080"]

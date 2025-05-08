@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"time"
 )
@@ -12,7 +11,7 @@ func (s *Service) StartTickerUpdateData(timeInterval int) *time.Ticker {
 	go func() {
 		for t := range ticker.C {
 			fmt.Println("Tick at ", t)
-			go s.UpdateDataStatistic(context.Background())
+			// go s.UpdateDataStatistic(context.Background())
 		}
 	}()
 

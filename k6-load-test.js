@@ -2,9 +2,9 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export let options = {
-  vus: 100, // 200 virtual users
-  duration: "10m", // chạy 10 giây
-  rps: 2000, // target 6000 request/s
+  vus: 10, //  virtual users
+  duration: "10m", // thời gian chạy
+  rps: 200, // target request/s
 };
 
 let data = JSON.stringify({
