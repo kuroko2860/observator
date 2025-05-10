@@ -12,8 +12,6 @@ import (
 	"kuroko.com/processor/internal/types"
 )
 
-var pathIds map[uint32]bool
-
 var (
 	msgCount = prometheus.NewCounter(
 		prometheus.CounterOpts{
@@ -42,7 +40,6 @@ func (s *Service) ProcessTrace(ctx context.Context, trace []*types.SpanResponse)
 		s.InsertEntityFromGraph(ctx, root, pathId)
 		s.InsertPath(ctx, root, pathId)
 
-		pathIds[pathId] = true
 		pathIdCollection.InsertOne(ctx, bson.M{"_id": pathId})
 	}
 	s.ProcessGraph(ctx, root, pathId)
@@ -186,7 +183,7 @@ func (s *Service) InsertEntityFromGraph(ctx context.Context, root *types.GraphNo
 	}
 }
 func (s *Service) IsPathExist(ctx context.Context, pathId uint32) bool {
-	return pathIds[pathId]
+	return pathCollection.Find(ctx, bson.M{"_id": pathId}).One(nil) == nil
 }
 
 func generateOperationID(sr *types.SpanResponse) string {
