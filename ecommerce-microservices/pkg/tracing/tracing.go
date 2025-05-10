@@ -25,7 +25,7 @@ func InitTracer(serviceName, natsURL string) (func(context.Context) error, error
 	}
 
 	// Create NATS exporter
-	exporter, err := NewNatsExporter(natsURL, "otel-spans")
+	exporter, err := NewNatsExporter(natsURL, "traces.service")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create NATS exporter: %w", err)
 	}

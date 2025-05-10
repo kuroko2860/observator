@@ -36,7 +36,7 @@ func main() {
 	// ---------------- http logs ----------------
 	// Simple Async Subscriber
 
-	_, err = nc.Subscribe("http-logs", func(m *nats.Msg) {
+	_, err = nc.Subscribe("logs.http", func(m *nats.Msg) {
 		s.ReceiveNATSMsg(m)
 	})
 	if err != nil {

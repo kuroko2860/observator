@@ -54,7 +54,8 @@ type HttpLogEntry struct {
 	Protocol  string `json:"protocol" bson:"protocol"`
 	RemoteIP  string `json:"remote_ip" bson:"remote_ip"`
 	RequestId string `json:"request_id" bson:"request_id"`
-	// TraceId      string `json:"trace_id" bson:"trace_id"`
+	TraceId   string `json:"trace_id" bson:"trace_id"`
+	SpanId    string `json:"span_id" bson:"span_id"`
 	// PathId       uint32 `json:"path_id" bson:"path_id"`
 	UserAgent    string `json:"user_agent" bson:"user_agent"`
 	Duration     int64  `json:"duration" bson:"duration"`

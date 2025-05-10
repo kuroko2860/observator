@@ -8,11 +8,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"kltn/ecommerce-microservices/checkout/pkg/service"
+	"kltn/ecommerce-microservices/pkg/logging"
 )
 
 var httpDurationMs *prometheus.HistogramVec
@@ -64,7 +66,7 @@ func NewCheckoutHandler(svc service.CheckoutService) *CheckoutHandler {
 
 // RegisterRoutes registers the handler routes with the Echo instance
 func (h *CheckoutHandler) RegisterRoutes(e *echo.Echo) {
-	e.POST("/checkout", h.UserCheckout, MetricsMiddleware)
+	e.POST("/checkout", h.UserCheckout, otelecho.Middleware("checkout-service"), MetricsMiddleware, logging.CreateLoggingMiddleware("checkout-service"))
 }
 
 // UserCheckout handles the checkout request

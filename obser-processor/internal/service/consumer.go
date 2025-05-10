@@ -22,7 +22,7 @@ import (
 
 var (
 	httpAddr   = flag.String("http.addr", ":8085", "HTTP listen address")
-	natsSubj   = flag.String("nats.subject", "otel-spans", "NATS subject for spans")
+	natsSubj   = flag.String("nats.subject", "traces.service", "NATS subject for spans")
 	bufferTime = flag.Duration("buffer.time", 5*time.Second, "Time to buffer spans before processing")
 )
 

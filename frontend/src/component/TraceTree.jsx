@@ -86,8 +86,7 @@ const TraceTree = ({ traceId, path, spanErrors, spanIds }) => {
       </Box>
       {selectedSpanId && (
         <Box className="w-1/3 pr-2">
-          <Typography variant="h6">Span Details</Typography>
-          <Typography>Span ID: {selectedSpanId}</Typography>
+          <Typography variant="h6">Span Logs</Typography>
           <OperationLog traceId={traceId} spanId={selectedSpanId} />
         </Box>
       )}

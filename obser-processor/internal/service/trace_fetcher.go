@@ -183,7 +183,8 @@ func (s *Service) InsertEntityFromGraph(ctx context.Context, root *types.GraphNo
 	}
 }
 func (s *Service) IsPathExist(ctx context.Context, pathId uint32) bool {
-	return pathCollection.Find(ctx, bson.M{"_id": pathId}).One(nil) == nil
+	c, _ := pathIdCollection.Find(ctx, bson.M{"_id": pathId}).Count()
+	return c > 0
 }
 
 func generateOperationID(sr *types.SpanResponse) string {

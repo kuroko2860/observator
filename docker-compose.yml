@@ -10,6 +10,7 @@ services:
     depends_on:
       - mongo-db
       - nats
+    restart: always
   # obser-analystics:
   #   build:
   #     context: ./obser-analystics
