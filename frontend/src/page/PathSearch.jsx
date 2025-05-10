@@ -4,6 +4,7 @@ import { getAllServices } from "../redux/services/selector";
 import axios from "../config/axios";
 import PathTree from "../component/PathTree";
 import { useNavigate } from "react-router-dom";
+import { Typography } from "@mui/material";
 
 const PathSearch = () => {
   const navigate = useNavigate();
@@ -14,9 +15,7 @@ const PathSearch = () => {
   const [loadingOperations, setLoadingOperations] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState(null);
-  const [pairs, setPairs] = useState([
-    { id: 1, service: "AWS", operation: "" },
-  ]);
+  const [pairs, setPairs] = useState([]);
 
   const fetchOperations = async (service) => {
     if (operationsByService[service]) return;
@@ -113,11 +112,6 @@ const PathSearch = () => {
     }
   };
 
-  const allPairsValid = pairs.every(
-    (pair) =>
-      pair.service && pair.operation && operationsByService[pair.service]
-  );
-
   const renderServiceSelect = (pair) => (
     <div className="w-1/3">
       <label className="block text-sm font-medium mb-1">Service</label>
@@ -163,11 +157,14 @@ const PathSearch = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6">
-        Service &amp; Operation Selector
-      </h1>
+      <Typography
+        variant="h5"
+        className="text-xl md:text-2xl font-bold text-center"
+      >
+        Search all paths with selected operations
+      </Typography>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="mt-6">
         {pairs.map((pair) => (
           <div key={pair.id} className="flex items-center gap-4 mb-4">
             {renderServiceSelect(pair)}
@@ -175,7 +172,7 @@ const PathSearch = () => {
             <div className="flex items-end">
               <button
                 type="button"
-                className="bg-red-500 text-white p-2 rounded-md mt-6"
+                className="bg-red-500 text-white p-2 rounded-md cursor-pointer mt-6 hover:bg-red-600 duration-200 disabled:opacity-70 disabled:cursor-default disabled:bg-red-500"
                 onClick={() => removePair(pair.id)}
                 disabled={pairs.length <= 1}
               >
@@ -188,7 +185,7 @@ const PathSearch = () => {
         <div className="flex gap-4 mt-6">
           <button
             type="button"
-            className="bg-green-500 text-white py-2 px-4 rounded-md"
+            className="bg-green-500 text-white py-2 px-4 rounded-md cursor-pointer hover:bg-green-600 duration-200 disabled:cursor-default disabled:bg-green-500"
             onClick={addPair}
           >
             Add Service & Operation
@@ -196,8 +193,8 @@ const PathSearch = () => {
 
           <button
             type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded-md"
-            disabled={isSubmitting || !allPairsValid}
+            className="bg-blue-500 text-white py-2 px-4 cursor-pointer hover:bg-blue-600 duration-200 rounded-md disabled:opacity-70 disabled:cursor-default disabled:bg-blue-500"
+            disabled={isSubmitting || pairs.length < 1}
           >
             {isSubmitting ? "Submitting..." : "Submit"}
           </button>
@@ -206,7 +203,6 @@ const PathSearch = () => {
 
       {response && (
         <div className="mt-8 p-4 border rounded-md bg-gray-50">
-          <h2 className="text-xl font-bold mb-4">Response</h2>
           <pre className="bg-gray-100 p-4 rounded overflow-x-auto">
             {response.data.paths?.map((path, index) => (
               <div

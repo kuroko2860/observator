@@ -28,7 +28,7 @@ function Layout() {
   return (
     <Box className="flex">
       <CssBaseline />
-      <AppBar className="fixed top-0 left-0 z-10 sm:w-[calc(100%-240px)] sm:ml-240">
+      <AppBar className="fixed top-0 !left-0 z-1000 sm:w-[calc(100%-240px)] ml-[240px]">
         <Toolbar>
           <Typography variant="h6" noWrap component="div">
             {pathMap[location.pathname] || "Dashboard"}
@@ -71,27 +71,6 @@ function Layout() {
                 <MenuItem to="/top-service" text="Top service" />
               </List>
             </Popup>
-            {/* <Popup
-              trigger={
-                <ListItem>
-                  <NavLink className={"custom-navlink"} to="">
-                    User
-                  </NavLink>
-                </ListItem>
-              }
-              position="right top"
-              on={"hover"}
-              closeOnDocumentClick
-              mouseLeaveDelay={50}
-              mouseEnterDelay={0}
-              arrow={false}
-            >
-              <List className="menu">
-                <MenuItem to="/online-user" text="Online user" />
-                <MenuItem to="/usage" text="Usage" />
-                <MenuItem to="/api-called" text="API called" />
-              </List>
-            </Popup> */}
             <Popup
               trigger={
                 <ListItem>

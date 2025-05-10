@@ -10,6 +10,7 @@ import {
   TableHead,
   TablePagination,
   Paper,
+  Container,
 } from "@mui/material";
 import { FormProvider, useForm } from "react-hook-form";
 import { TimeRangeInput } from "../component/shared/Input";
@@ -19,7 +20,7 @@ import { BarChart } from "@mui/x-charts";
 import { useNavigate, useParams } from "react-router-dom";
 import useFetchData from "../hook/useFetchData";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SubmitButtons } from "../component/shared/Common";
 
 const ServiceDetail = () => {
@@ -37,6 +38,16 @@ const ServiceDetail = () => {
   const sortedHttpApi =
     data?.http_api?.sort((a, b) => b.count - a.count) || null;
   const hasOperations = data && Object.keys(data.operations).length > 0;
+
+  // Fetch data on initial load
+  useEffect(() => {
+    setPage(0);
+    const params = {
+      from: dayjs().startOf("day").valueOf(),
+      to: dayjs().startOf("day").add(1, "day").valueOf(),
+    };
+    fetchData(params);
+  }, []);
 
   // Handlers
   const handleSubmit = (formData) => {
@@ -63,9 +74,9 @@ const ServiceDetail = () => {
 
   const renderOperationsChart = () => (
     <BarChartCard
-      title="Operations"
+      title="List of operations"
       caption="Operation call count"
-      className="mb-4"
+      className="mb-4 "
     >
       <BarChart
         layout="horizontal"
@@ -91,7 +102,10 @@ const ServiceDetail = () => {
   );
 
   const renderHttpApiTable = () => (
-    <CustomContainer title="HTTP API" className="mt-4">
+    <CustomContainer
+      title="List of HTTP API"
+      className="my-4 shadow border-gray-200 border-[1px]"
+    >
       <TableContainer component={Paper}>
         <Table aria-label="simple table" className="table-auto min-w-[650px]">
           <TableHead>
@@ -138,14 +152,22 @@ const ServiceDetail = () => {
   );
 
   return (
-    <Box className="flex flex-col items-center p-4 max-w-[1200px]">
-      <Typography variant="h4" className="text-3xl font-bold mb-4">
-        Service Detail: {service_name}
+    <Box className="flex flex-col gap-4 items-center p-6 max-w-[1200px]">
+      <Typography
+        variant="h5"
+        className="text-xl md:text-2xl font-bold text-center"
+      >
+        View service{" "}
+        <span className="text-[#1976d2] font-bold">{service_name}</span> in
+        detail
       </Typography>
 
       <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(handleSubmit)}>
-          <TimeRangeInput className="mb-4" />
+        <form
+          onSubmit={methods.handleSubmit(handleSubmit)}
+          className="flex items-center justify-center gap-8"
+        >
+          <TimeRangeInput />
           <SubmitButtons />
         </form>
       </FormProvider>
@@ -154,15 +176,7 @@ const ServiceDetail = () => {
       {error && <p className="text-red-500">{error}</p>}
 
       {data && (
-        <CustomContainer className="mt-4">
-          {hasOperations ? (
-            renderOperationsChart()
-          ) : (
-            <Typography variant="h6" className="text-center">
-              No operation found
-            </Typography>
-          )}
-
+        <Container className="mt-4 flex flex-col gap-4">
           {sortedHttpApi ? (
             renderHttpApiTable()
           ) : (
@@ -170,7 +184,14 @@ const ServiceDetail = () => {
               No HTTP API found
             </Typography>
           )}
-        </CustomContainer>
+          {hasOperations ? (
+            renderOperationsChart()
+          ) : (
+            <Typography variant="h6" className="text-center">
+              No operation found
+            </Typography>
+          )}
+        </Container>
       )}
     </Box>
   );

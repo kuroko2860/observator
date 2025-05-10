@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Container,
   Grid2,
   Tab,
   Table,
@@ -20,7 +21,7 @@ import {
 import { BarChart } from "@mui/x-charts";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers/icons";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import HopDetails from "../component/HopDetail";
@@ -93,34 +94,6 @@ const PathStatistics = ({ data, unit }) => (
   </Grid2>
 );
 
-// const ErrorStatistics = ({ data, unit }) => (
-//   <Grid2 container spacing={2}>
-//     <StatCard title="Count" value={data.error_count} unit="errors" />
-//     <StatCard title="Error rate" value={data.error_rate * 100} unit="%" />
-//     <BarChartCard title="Error distribution" caption={`Errors per ${unit}`}>
-//       <BarChart
-//         width={600}
-//         height={300}
-//         xAxis={[
-//           {
-//             scaleType: "band",
-//             data: formatDateKeys(data.error_dist),
-//             label: "Timestamp",
-//             tickPlacement: "start",
-//             tickLabelPlacement: "tick",
-//           },
-//         ]}
-//         series={[
-//           {
-//             data: Object.values(data.error_dist || {}),
-//             label: "Count",
-//           },
-//         ]}
-//       />
-//     </BarChartCard>
-//   </Grid2>
-// );
-
 const TraceTable = ({ traces, onViewTrace }) => (
   <Table>
     <TableHead>
@@ -185,6 +158,24 @@ const PathDetail = () => {
     },
   });
 
+  useEffect(() => {
+    async function _fetchData() {
+      console.log("fetching data");
+      const params = {
+        from: dayjs().startOf("day").valueOf(),
+        to: dayjs().startOf("day").add(1, "day").valueOf(),
+        unit: "hour",
+      };
+
+      await fetchData(params);
+      const { data: trace_data } = await axios.get(`/paths/${path_id}/traces`, {
+        params,
+      });
+      setTraces(trace_data || []);
+    }
+    _fetchData();
+  }, []);
+
   const onSubmit = async (formData) => {
     const params = {
       ...formData,
@@ -216,19 +207,19 @@ const PathDetail = () => {
 
   return (
     <Box className="p-4 space-y-4">
-      <Typography variant="h4" className="font-bold mb-4">
-        Path Detail
-      </Typography>
-
-      <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
-          <Grid2 container spacing={2}>
-            <TimeRangeInput />
-            <TimeUnitInput />
-            <SubmitButtons />
-          </Grid2>
-        </form>
-      </FormProvider>
+      <CustomContainer title={"View path detail"}>
+        <Container className="flex items-center justify-center">
+          <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmit)}>
+              <Grid2 container spacing={2}>
+                <TimeRangeInput />
+                <TimeUnitInput />
+                <SubmitButtons />
+              </Grid2>
+            </form>
+          </FormProvider>
+        </Container>
+      </CustomContainer>
 
       {loading && <CircularProgress />}
       {error && <div className="text-red-500">{error}</div>}
@@ -255,7 +246,9 @@ const PathDetail = () => {
                   <AccordionDetails>
                     <CustomContainer>
                       <Box className="flex w-full">
-                        <Box className={showHopDetail ? "w-1/2 pr-2" : "w-full"}>
+                        <Box
+                          className={showHopDetail ? "w-1/2 pr-2" : "w-full"}
+                        >
                           <PathTree
                             path={data.path_info}
                             handleLinkClick={handleLinkClick}
@@ -289,20 +282,6 @@ const PathDetail = () => {
                     </CustomContainer>
                   </AccordionDetails>
                 </Accordion>
-
-                {/* <Accordion>
-                  <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-                    <Typography>View Error</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <CustomContainer>
-                      <ErrorStatistics
-                        data={data}
-                        unit={methods.getValues("unit")}
-                      />
-                    </CustomContainer>
-                  </AccordionDetails>
-                </Accordion> */}
               </Box>
             </TabPanel>
 

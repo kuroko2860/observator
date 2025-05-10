@@ -115,17 +115,20 @@ const ApiLong = () => {
   return (
     <Container maxWidth="lg" className="py-4 px-2 md:px-4">
       <Card className="p-4 md:p-6 rounded-lg shadow-sm">
-        <Box className="flex items-center gap-2 mb-4">
+        <Box className="flex items-center justify-center gap-2 mb-4">
           <Speed color="warning" fontSize={isMobile ? "medium" : "large"} />
-          <Typography variant={isMobile ? "h6" : "h5"} className="font-bold">
-            API Latency Analysis
+          <Typography
+            variant={isMobile ? "h6" : "h5"}
+            className="font-bold text-center"
+          >
+            API latency analysis
           </Typography>
         </Box>
 
         <Divider className="mb-4" />
 
-        <Box className="mb-4">
-          <Typography variant="body1" className="mb-2 text-gray-700">
+        <Box className="my-4 flex flex-col gap-4">
+          <Typography variant="body1" className="text-gray-700">
             Find APIs that exceed a specified latency threshold
           </Typography>
 
@@ -137,7 +140,7 @@ const ApiLong = () => {
                 </Grid2>
                 <Grid2 item xs={12} md={4}>
                   <ThresholdInput
-                    label="Latency Threshold (ms)"
+                    label="Latency threshold (ms)"
                     className="w-full"
                     helperText="APIs with latency above this value will be shown"
                     min={100}

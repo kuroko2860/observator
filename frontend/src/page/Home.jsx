@@ -21,7 +21,7 @@ function Home() {
 
   return (
     <CustomContainer
-      title={"Services"}
+      title={"Services list"}
       className="bg-white shadow-md rounded p-4"
     >
       {/* <CheckInOutSelector /> */}
@@ -29,10 +29,10 @@ function Home() {
         <Table className="min-w-full">
           <TableHead>
             <TableRow>
-              <TableCell className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+              <TableCell className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-center text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
                 STT
               </TableCell>
-              <TableCell className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+              <TableCell className="px-6 py-3 border-b border-gray-200 bg-gray-50 text-center text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
                 Service Name
               </TableCell>
             </TableRow>
@@ -41,7 +41,7 @@ function Home() {
             {services.slice(pg * rpg, pg * rpg + rpg).map((s, index) => (
               <TableRow
                 key={index}
-                className="hover:bg-gray-100"
+                className="hover:bg-gray-100 cursor-pointer"
                 onClick={() => navigate(`/service-detail/${s}`)}
               >
                 <TableCell className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">

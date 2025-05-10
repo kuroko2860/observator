@@ -231,7 +231,7 @@ const SubmitButtons = ({
       item
       xs={12}
       className={twMerge(
-        "flex flex-col sm:flex-row justify-end gap-2 mt-4",
+        "flex flex-col sm:flex-row justify-end gap-2",
         className
       )}
     >
@@ -298,7 +298,7 @@ const CustomForm = ({
     <FormProvider {...methods}>
       <form
         onSubmit={methods.handleSubmit(handleSubmit)}
-        className={twMerge("flex flex-col gap-3", className)}
+        className={twMerge("flex gap-4 justify-center items-center", className)}
         noValidate
       >
         <Grid container spacing={2}>

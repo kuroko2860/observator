@@ -125,19 +125,6 @@ const ServiceNameInput = ({
 
   return (
     <Box className={className || ""}>
-      <Box className="flex items-center gap-1 mb-1">
-        {label && (
-          <Typography variant="body2" className="text-gray-700 font-medium">
-            {label || "Service name"}
-            {required && <span className="text-red-500 ml-1">*</span>}
-          </Typography>
-        )}
-        {helperText && (
-          <Tooltip title={helperText} arrow placement="top">
-            <Info fontSize="small" className="text-gray-400 cursor-help" />
-          </Tooltip>
-        )}
-      </Box>
       <SelectionInput
         labelId={"service-name"}
         name={"service_name"}
@@ -146,6 +133,19 @@ const ServiceNameInput = ({
         required={required}
         className="w-full"
       />
+      <Box className="flex items-center gap-1 mb-1">
+        {label && (
+          <Typography variant="body2" className="text-gray-700 font-medium">
+            {label || "Service name"}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </Typography>
+        )}
+        {helperText && (
+          <Tooltip title={helperText} arrow placement="bottom">
+            <Info fontSize="small" className="text-gray-400 cursor-help" />
+          </Tooltip>
+        )}
+      </Box>
     </Box>
   );
 };
@@ -160,16 +160,6 @@ const EndpointInput = ({
 
   return (
     <Box className={className || ""}>
-      <Box className="flex items-center gap-1 mb-1">
-        {helperText && (
-          <Tooltip title={helperText} arrow placement="top">
-            <Info
-              fontSize="small"
-              className="text-gray-400 cursor-help ml-auto"
-            />
-          </Tooltip>
-        )}
-      </Box>
       <SelectionInput
         labelId={"uri_path"}
         name={"uri_path"}
@@ -178,6 +168,16 @@ const EndpointInput = ({
         required={required}
         className="w-full"
       />
+      <Box className="flex items-center gap-1 mb-1">
+        {helperText && (
+          <Tooltip title={helperText} arrow placement="bottom">
+            <Info
+              fontSize="small"
+              className="text-gray-400 cursor-help ml-auto"
+            />
+          </Tooltip>
+        )}
+      </Box>
     </Box>
   );
 };

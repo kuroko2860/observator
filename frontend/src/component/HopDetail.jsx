@@ -1,24 +1,10 @@
-import {
-  Box,
-  Button,
-  Grid2,
-  TableContainer,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-} from "@mui/material";
-import CustomContainer from "./shared/CustomContainer";
+import { Box, Button, Grid2, CircularProgress } from "@mui/material";
 import { useEffect } from "react";
 import useFetchData from "../hook/useFetchData";
-import StatCard from "./shared/StatCard";
 import BarChartCard from "./shared/BarChartCard";
 import { BarChart } from "@mui/x-charts";
 
-const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
+const HopDetails = ({ hopID, params, setShowHopDetail }) => {
   const { data, loading, error, fetchData } = useFetchData(`/hops/${hopID}`);
 
   useEffect(() => {
@@ -32,8 +18,8 @@ const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
       className="col-span-2 lg:col-span-1"
     >
       <BarChart
-        width={600}
-        height={350}
+        width={400}
+        height={250}
         className="w-full"
         xAxis={[
           {
@@ -69,48 +55,51 @@ const HopDetails = ({ hopID, params, setShowHopDetail, unit }) => {
   if (!data) return null;
 
   return (
-    <Box className="bg-white p-4 rounded-lg shadow-lg">
-      <CustomContainer title="Hop statistic" className="mb-4">
-        <Grid2
-          container
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        >
-          {renderBarChart(
-            "Count",
-            "Distribution",
-            "Hop call distribution",
-            data.distribution
-          )}
-        </Grid2>
-      </CustomContainer>
+    <Box className="bg-white p-4 rounded-lg shadow-lg flex flex-wrap gap-2">
+      <Grid2
+        container
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-[49%]"
+      >
+        {renderBarChart(
+          "Count",
+          "Distribution",
+          "Hop call distribution",
+          data.distribution
+        )}
+      </Grid2>
 
-      <CustomContainer title="Error" className="mb-4">
-        <Grid2
-          container
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        >
-          {renderBarChart(
-            "% Error",
-            "Error distribution",
-            "Error distribution",
-            data.error_dist
-          )}
-        </Grid2>
-      </CustomContainer>
-
-      <CustomContainer title="Latency" className="mb-4">
+      <Grid2
+        container
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-[49%]"
+      >
+        {renderBarChart(
+          "% Error",
+          "Error distribution",
+          "Error distribution",
+          data.error_dist
+        )}
+      </Grid2>
+      <Grid2
+        container
+        className="gap-4 w-full flex flex-col justify-center items-center"
+      >
         {renderBarChart(
           "microseconds (us)",
           "Latency distribution",
           "Latency distribution",
           data.latency
         )}
-      </CustomContainer>
-
+      </Grid2>
       <Button
         type="button"
         onClick={() => setShowHopDetail(false)}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        variant="outlined"
+        className="order-2 sm:order-1 w-full sm:w-auto"
+        sx={{
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 500,
+        }}
       >
         Close
       </Button>

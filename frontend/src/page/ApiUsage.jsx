@@ -24,7 +24,7 @@ import {
 } from "../component/shared/Input";
 import axios from "../config/axios";
 import useFetchData from "../hook/useFetchData";
-import { Search, Api, ErrorOutline } from "@mui/icons-material";
+import { Api, ErrorOutline } from "@mui/icons-material";
 
 // Table headings configuration
 const TABLE_HEADINGS = [
@@ -162,65 +162,54 @@ function ApiUsage() {
       <Card className="p-4 md:p-6 rounded-lg shadow-sm">
         <Typography
           variant={isMobile ? "h6" : "h5"}
-          className="flex items-center gap-2 mb-4 font-bold"
+          className="flex items-center justify-center gap-2 mb-4 font-bold"
         >
           <Api color="primary" />
-          API Usage Analytics
+          API usage analytics
         </Typography>
+        <Box className="mt-2">
+          <Divider />
+        </Box>
 
-        <Divider className="mb-4" />
-
-        {/* Search Form */}
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(handleSubmit)}>
-            <Grid2 container spacing={2} className="mb-4">
-              <Grid2 item xs={12}>
-                <Typography
-                  variant="subtitle1"
-                  className="mb-2 font-medium flex items-center gap-1"
-                >
-                  <Search fontSize="small" />
-                  Filter Options
-                </Typography>
+          <form
+            onSubmit={methods.handleSubmit(handleSubmit)}
+            className="flex flex-col gap-3 mt-8"
+          >
+            <Grid2 container spacing={2}>
+              <Grid2 item xs={12} md={6}>
+                <ServiceNameInput
+                  className="mb-2"
+                  helperText="Select the service to analyze"
+                />
               </Grid2>
-
+              <Grid2 item xs={12} md={6}>
+                <EndpointInput
+                  endpoints={endpoints}
+                  className="mb-2"
+                  helperText="Select the API endpoint"
+                />
+              </Grid2>
+              <Grid2 item xs={12} sm={6} md={3}>
+                <MethodInput className="mb-2" helperText="HTTP method" />
+              </Grid2>
+              <Grid2 item xs={12} sm={6} md={3}>
+                <TextInput
+                  name="username"
+                  label="Username"
+                  className="mb-2 w-full"
+                />
+              </Grid2>
               <Grid2 item xs={12} md={6}>
                 <TimeRangeInput className="mb-2" />
               </Grid2>
-
-              <Grid2 item xs={12} md={6}>
-                <Grid2 container spacing={2}>
-                  <Grid2 item xs={12}>
-                    <TextInput
-                      name="username"
-                      label="Username"
-                      className="mb-2 w-full"
-                    />
-                  </Grid2>
-                  <Grid2 item xs={12} sm={6}>
-                    <ServiceNameInput className="mb-2 w-full" />
-                  </Grid2>
-                  <Grid2 item xs={12} sm={6}>
-                    <EndpointInput
-                      endpoints={endpoints}
-                      className="mb-2 w-full"
-                    />
-                  </Grid2>
-                  <Grid2 item xs={12}>
-                    <MethodInput className="mb-2 w-full" />
-                  </Grid2>
-                </Grid2>
-              </Grid2>
-
-              <Grid2 item xs={12}>
-                <SubmitButtons
-                  isLoading={isSearching}
-                  loadingText="Searching..."
-                  submitText="Search APIs"
-                  className="w-full md:w-auto"
-                />
-              </Grid2>
             </Grid2>
+            <SubmitButtons
+              isLoading={isSearching}
+              loadingText="Analyzing..."
+              submitText="Analyze API"
+              className={"justify-start"}
+            />
           </form>
         </FormProvider>
 
@@ -242,11 +231,7 @@ function ApiUsage() {
 
         {/* Results Table */}
         {data && !loading && (
-          <Box className="mt-4">
-            <Typography variant="subtitle1" className="mb-3 font-medium">
-              Results ({transformedData.length} APIs found)
-            </Typography>
-
+          <Box>
             <CustomTable
               headings={TABLE_HEADINGS}
               data={transformedData}

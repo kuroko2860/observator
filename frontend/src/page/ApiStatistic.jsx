@@ -4,7 +4,6 @@ import {
   BarChart as BarChartIcon,
   ErrorOutline,
   ExpandMore,
-  Refresh,
   Speed,
 } from "@mui/icons-material";
 import {
@@ -16,10 +15,10 @@ import {
   Card,
   Chip,
   CircularProgress,
+  Container,
   Divider,
   Fade,
   Grid2,
-  IconButton,
   Paper,
   Table,
   TableBody,
@@ -155,19 +154,19 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
 
   const renderForm = () => (
     <Card className="p-4 md:p-6 rounded-lg shadow-sm mb-4">
-      <Box className="flex items-center gap-2 mb-4">
+      <Box className="flex items-center justify-center gap-2 mb-4">
         <Api color="primary" fontSize={isMobile ? "medium" : "large"} />
         <Typography variant={isMobile ? "h6" : "h5"} className="font-bold">
-          API Statistics
+          View API statistics
         </Typography>
       </Box>
 
-      <Divider className="mb-4" />
+      <Divider className="mt-4" />
 
       <FormProvider {...methods}>
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
-          className="flex flex-col gap-3"
+          className="flex flex-col gap-3 mt-8"
         >
           <Grid2 container spacing={2}>
             <Grid2 item xs={12} md={6}>
@@ -202,16 +201,6 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
                 submitText="Analyze API"
                 className="w-full md:w-auto"
               />
-              {apiFetcher.data && (
-                <IconButton
-                  color="primary"
-                  className="ml-2"
-                  onClick={() => methods.handleSubmit(onSubmit)()}
-                  title="Refresh data"
-                >
-                  <Refresh />
-                </IconButton>
-              )}
             </Grid2>
           </Grid2>
         </form>
@@ -227,14 +216,12 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
             <TableCell className="font-semibold">Metric</TableCell>
             <TableCell className="font-semibold">Microseconds</TableCell>
             <TableCell className="font-semibold">Milliseconds</TableCell>
-            <TableCell className="font-semibold">Seconds</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {Object.entries(apiFetcher.data.Latency).map(
             ([key, value], index) => {
               const msValue = (value / 1000).toFixed(2);
-              const secValue = (value / 1000000).toFixed(4);
               return (
                 <TableRow key={index} hover>
                   <TableCell className="font-medium">
@@ -251,7 +238,6 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
                       variant="outlined"
                     />
                   </TableCell>
-                  <TableCell>{secValue}</TableCell>
                 </TableRow>
               );
             }
@@ -262,7 +248,7 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
   );
   const renderLatencyChart = () => (
     <BarChartCard
-      title="Request Latency Distribution"
+      title="Request latency distribution"
       caption={`API latency per ${timeUnit}`}
     >
       <BarChart
@@ -296,7 +282,7 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
   );
   const renderErrorChart = () => (
     <BarChartCard
-      title="Error Rate Distribution"
+      title="Error rate distribution"
       caption={`Error rate per ${timeUnit}`}
     >
       <BarChart
@@ -363,7 +349,7 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
     }
 
     return (
-      <Box className="flex flex-col gap-4" id="chart-container">
+      <Box className="flex flex-col gap-4 flex-grow" id="chart-container">
         <Accordion defaultExpanded>
           <AccordionSummary
             expandIcon={<ExpandMore />}
@@ -380,43 +366,47 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
             </Box>
           </AccordionSummary>
           <AccordionDetails className="bg-white p-0">
-            <CustomContainer title="API Usage Statistics" className="p-0">
-              <Grid2 container spacing={3} className="p-4">
-                <Grid2 item xs={12} sm={6} md={4}>
-                  <StatCard
-                    title="Total Calls"
-                    value={apiFetcher.data.Count}
-                    unit="requests"
-                    icon={<Api fontSize="small" color="primary" />}
-                  />
+            <CustomContainer title="API usage statistics">
+              <Grid2 container spacing={3} className="p-4 flex gap-4">
+                <Grid2 item md={4} className="flex flex-col gap-4">
+                  <Grid2 item xs={12} sm={6} md={4}>
+                    <StatCard
+                      title="Total calls "
+                      value={apiFetcher.data.Count}
+                      unit="requests"
+                      icon={<Api fontSize="small" color="primary" />}
+                    />
+                  </Grid2>
+                  <Grid2 item xs={12} sm={6} md={4}>
+                    <StatCard
+                      title="Call frequency"
+                      value={apiFetcher.data.Frequency}
+                      unit={`calls/${timeUnit}`}
+                      icon={<AccessTime fontSize="small" color="primary" />}
+                    />
+                  </Grid2>
+                  <Grid2 item xs={12} md={4}>
+                    <StatCard
+                      title="Error rate"
+                      value={(apiFetcher.data.ErrorRate * 100).toFixed(2)}
+                      unit="%"
+                      icon={
+                        <ErrorOutline
+                          fontSize="small"
+                          color={
+                            apiFetcher.data.ErrorRate > 0.1
+                              ? "error"
+                              : "success"
+                          }
+                        />
+                      }
+                      trend={apiFetcher.data.ErrorRate > 0.1 ? "up" : "down"}
+                    />
+                  </Grid2>
                 </Grid2>
-                <Grid2 item xs={12} sm={6} md={4}>
-                  <StatCard
-                    title="Call Frequency"
-                    value={apiFetcher.data.Frequency}
-                    unit={`calls/${timeUnit}`}
-                    icon={<AccessTime fontSize="small" color="primary" />}
-                  />
-                </Grid2>
-                <Grid2 item xs={12} md={4}>
-                  <StatCard
-                    title="Error Rate"
-                    value={(apiFetcher.data.ErrorRate * 100).toFixed(2)}
-                    unit="%"
-                    icon={
-                      <ErrorOutline
-                        fontSize="small"
-                        color={
-                          apiFetcher.data.ErrorRate > 0.05 ? "error" : "success"
-                        }
-                      />
-                    }
-                    trend={apiFetcher.data.ErrorRate > 0.05 ? "up" : "down"}
-                  />
-                </Grid2>
-                <Grid2 item xs={12}>
+                <Grid2 item xs={8}>
                   <BarChartCard
-                    title="Request Distribution"
+                    title="Request distribution"
                     caption={`API calls per ${timeUnit}`}
                   >
                     <BarChart
@@ -469,10 +459,13 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
             </Box>
           </AccordionSummary>
           <AccordionDetails className="bg-white p-0">
-            <CustomContainer title="Response Time Analysis" className="p-0">
+            <Container
+              title="Response time"
+              className="flex gap-4 justify-center items-center"
+            >
               <Box className="p-4">{renderLatencyTable()}</Box>
-              <Box className="p-4">{renderLatencyChart()}</Box>
-            </CustomContainer>
+              <Box className="p-4 flex-grow">{renderLatencyChart()}</Box>
+            </Container>
           </AccordionDetails>
         </Accordion>
 
@@ -501,25 +494,30 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
             </Box>
           </AccordionSummary>
           <AccordionDetails className="bg-white p-0">
-            <CustomContainer title="Error Statistics" className="p-0">
-              <Grid2 container spacing={3} className="p-4">
-                <Grid2 item xs={12} sm={6} md={4}>
-                  <StatCard
-                    title="Error Count"
-                    value={apiFetcher.data.ErrorCount}
-                    unit="errors"
-                    icon={<ErrorOutline fontSize="small" color="error" />}
-                  />
-                </Grid2>
-                <Grid2 item xs={12} sm={6} md={4}>
-                  <StatCard
-                    title="Error Rate"
-                    value={(apiFetcher.data.ErrorRate * 100).toFixed(2)}
-                    unit="%"
-                    icon={<ErrorOutline fontSize="small" color="error" />}
-                  />
-                </Grid2>
-                <BarChartCard title="" caption="Errors by status code">
+            <Container className="p-4 flex gap-4">
+              <Container className="flex flex-col gap-4">
+                <StatCard
+                  className={"max-h-[200px]"}
+                  title="Error count"
+                  value={apiFetcher.data.ErrorCount}
+                  unit="errors"
+                  icon={<ErrorOutline fontSize="small" color="error" />}
+                />
+
+                <StatCard
+                  className={"max-h-[200px]"}
+                  title="Error rate"
+                  value={(apiFetcher.data.ErrorRate * 100).toFixed(2)}
+                  unit="%"
+                  icon={<ErrorOutline fontSize="small" color="error" />}
+                />
+              </Container>
+              <Container className="flex flex-col gap-4">
+                {renderErrorChart()}
+                <BarChartCard
+                  title="Error count distribution"
+                  caption="Errors by status code"
+                >
                   <BarChart
                     width={chartDimensions.width}
                     height={chartDimensions.height}
@@ -544,9 +542,8 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
                     ]}
                   />
                 </BarChartCard>
-                {renderErrorChart()}
-              </Grid2>
-            </CustomContainer>
+              </Container>
+            </Container>
           </AccordionDetails>
         </Accordion>
       </Box>
@@ -555,9 +552,6 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
 
   return (
     <Box className="flex flex-col items-center gap-2 p-2">
-      <Typography variant="h5" className="text-2xl font-bold">
-        API Statistic
-      </Typography>
       {renderForm()}
       {renderContent()}
     </Box>

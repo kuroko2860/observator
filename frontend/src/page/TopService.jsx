@@ -54,12 +54,15 @@ const TopService = () => {
       className="flex flex-col gap-4 p-4 md:p-6 bg-white shadow-lg rounded-lg"
       maxWidth="lg"
     >
-      <Typography variant="h5" className="text-xl md:text-2xl font-bold">
-        View Most Called Services
+      <Typography
+        variant="h5"
+        className="text-xl md:text-2xl font-bold text-center"
+      >
+        View most called services
       </Typography>
 
       <Card className="p-3 md:p-4 mb-4">
-        <CustomForm onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <CustomForm onSubmit={handleSubmit}>
           <TimeRangeInput />
         </CustomForm>
       </Card>
@@ -92,7 +95,7 @@ const TopService = () => {
 };
 
 const TopServiceCalledChart = ({ data, isMobile }) => {
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(Object.keys(data).length);
   const navigate = useNavigate();
   const theme = useTheme();
   const [chartDimensions, setChartDimensions] = useState({
@@ -136,104 +139,105 @@ const TopServiceCalledChart = ({ data, isMobile }) => {
   );
 
   return (
-    <Card className="p-4" elevation={2}>
-      <Typography variant="h6" className="font-bold mb-4">
-        Top {Math.min(limit, Object.keys(data).length)} Services Called
-      </Typography>
+    <Card
+      className="p-4 flex flex-col justify-center items-center gap-4"
+      elevation={2}
+    >
+      {/* <Typography variant="h6" className="font-bold text-center">
+        Top {Math.min(limit, Object.keys(data).length)} called services
+      </Typography> */}
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={4}>
-          <TextField
-            type="number"
-            required
-            value={limit}
-            onChange={handleLimitChange}
-            label="Number of services to display"
-            className="w-full"
-            variant="outlined"
-            inputProps={{ min: 1, max: 50 }}
-            helperText="Adjust to show more or fewer services"
-          />
-        </Grid>
-
-        <Grid item xs={12} id="chart-container">
-          <Box className="mt-4 overflow-x-auto">
-            {isMobile ? (
-              // Mobile-optimized chart with vertical layout
-              <BarChart
-                width={chartDimensions.width}
-                height={chartDimensions.height}
-                layout="vertical"
-                margin={{
-                  left: 120,
-                  right: 10,
-                  top: 10,
-                  bottom: 30,
-                }}
-                yAxis={[
-                  {
-                    scaleType: "band",
-                    data: serviceNames,
-                    tickLabelStyle: {
-                      fontSize: 12,
-                      textAnchor: "end",
-                    },
-                  },
-                ]}
-                series={[
-                  {
-                    data: serviceCounts,
-                    label: "Call Count",
-                    color: theme.palette.primary.main,
-                  },
-                ]}
-                onAxisClick={handleBarClick}
-                tooltip={{ trigger: "item" }}
-              />
-            ) : (
-              // Desktop chart with horizontal layout
-              <BarChart
-                width={chartDimensions.width}
-                height={chartDimensions.height}
-                margin={{
-                  left: 40,
-                  right: 10,
-                  top: 10,
-                  bottom: 70,
-                }}
-                xAxis={[
-                  {
-                    scaleType: "band",
-                    data: serviceNames,
-                    tickPlacement: "middle",
-                    tickLabelPlacement: "tick",
-                    tickLabelStyle: {
-                      angle: 45,
-                      textAnchor: "start",
-                      fontSize: 12,
-                    },
-                  },
-                ]}
-                series={[
-                  {
-                    data: serviceCounts,
-                    label: "Call Count",
-                    color: theme.palette.primary.main,
-                  },
-                ]}
-                onAxisClick={handleBarClick}
-                tooltip={{ trigger: "item" }}
-              />
-            )}
-            <Typography
-              variant="caption"
-              className="block text-center mt-2 text-gray-600"
-            >
-              Click on a service name to view details
-            </Typography>
-          </Box>
-        </Grid>
+      {/* <Grid container spacing={2} className="flex "> */}
+      <Grid item xs={12} sm={6} md={4}>
+        <TextField
+          type="number"
+          required
+          value={limit}
+          onChange={handleLimitChange}
+          label="Number of services to display"
+          className="w-full"
+          variant="outlined"
+          inputProps={{ min: 1, max: Object.keys(data).length }}
+          helperText="Adjust to show more or fewer services"
+        />
       </Grid>
+
+      <Grid item xs={12} id="chart-container">
+        <Box className="mt-4 overflow-x-auto">
+          {isMobile ? (
+            // Mobile-optimized chart with vertical layout
+            <BarChart
+              width={chartDimensions.width}
+              height={chartDimensions.height}
+              layout="vertical"
+              margin={{
+                left: 120,
+                right: 10,
+                top: 10,
+                bottom: 30,
+              }}
+              yAxis={[
+                {
+                  scaleType: "band",
+                  data: serviceNames,
+                  tickLabelStyle: {
+                    fontSize: 12,
+                    textAnchor: "end",
+                  },
+                },
+              ]}
+              series={[
+                {
+                  data: serviceCounts,
+                  label: "Call Count",
+                  color: theme.palette.primary.main,
+                },
+              ]}
+              onAxisClick={handleBarClick}
+              tooltip={{ trigger: "item" }}
+            />
+          ) : (
+            // Desktop chart with horizontal layout
+            <BarChart
+              width={chartDimensions.width}
+              height={chartDimensions.height}
+              margin={{
+                left: 40,
+                right: 10,
+                top: 10,
+                bottom: 70,
+              }}
+              xAxis={[
+                {
+                  scaleType: "band",
+                  data: serviceNames,
+                  tickPlacement: "middle",
+                  tickLabelPlacement: "tick",
+                  tickLabelStyle: {
+                    fontSize: 10,
+                  },
+                },
+              ]}
+              series={[
+                {
+                  data: serviceCounts,
+                  label: "Call Count",
+                  color: theme.palette.primary.main,
+                },
+              ]}
+              onAxisClick={handleBarClick}
+              tooltip={{ trigger: "item" }}
+            />
+          )}
+          <Typography
+            variant="caption"
+            className="block text-center mt-2 text-gray-600"
+          >
+            Click on a service name to view details
+          </Typography>
+        </Box>
+      </Grid>
+      {/* </Grid> */}
     </Card>
   );
 };

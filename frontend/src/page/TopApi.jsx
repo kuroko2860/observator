@@ -16,7 +16,7 @@ import useFetchData from "../hook/useFetchData";
 import { CustomForm } from "../component/shared/Common";
 import { TimeRangeInput } from "../component/shared/Input";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Constants
@@ -31,6 +31,16 @@ const DEFAULT_LIMIT = 10;
 // Main component
 function TopApi() {
   const topApiFetcher = useFetchData("/api-statistics/top-called");
+
+  useEffect(() => {
+    const currentDate = dayjs();
+    const requestData = {
+      limit: DEFAULT_LIMIT,
+      from: currentDate.startOf("day").valueOf(),
+      to: currentDate.startOf("day").add(1, "day").valueOf(),
+    };
+    topApiFetcher.fetchData(requestData);
+  }, []);
 
   const onSubmit = async (data) => {
     const currentDate = dayjs();
@@ -47,8 +57,8 @@ function TopApi() {
 
   return (
     <Container className="flex flex-col gap-4 p-6 bg-white shadow-lg rounded-lg">
-      <Typography variant="h5" className="text-gray-900">
-        View most called APIs
+      <Typography variant="h5" className="text-gray-900 text-center">
+        View most called API
       </Typography>
       <CustomForm onSubmit={onSubmit} className="flex flex-col gap-4">
         <TimeRangeInput />
@@ -112,13 +122,6 @@ const TopApiCalledTable = ({ data }) => {
       variant="outlined"
       className="h-full flex flex-col gap-4 p-6 bg-white shadow-lg rounded-lg"
     >
-      <Typography
-        variant="h5"
-        textAlign="center"
-        className="text-gray-900 font-bold"
-      >
-        Top 10 called APIs
-      </Typography>
       <TableContainer component={Paper} className="mt-4">
         <Table className="min-w-full" aria-label="API statistics table">
           <TableHead>

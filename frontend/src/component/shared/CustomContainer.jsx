@@ -20,7 +20,7 @@ const CustomContainer = ({
   return (
     <Paper
       elevation={elevation}
-      className={`rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-lg ${
+      className={`rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-md ${
         className || ""
       }`}
       sx={{
@@ -38,7 +38,7 @@ const CustomContainer = ({
           >
             <Typography
               variant={isMobile ? "h6" : "h5"}
-              className="font-bold"
+              className="font-bold text-center"
               sx={{
                 fontSize: isMobile ? "1.1rem" : "1.5rem",
                 lineHeight: 1.3,
