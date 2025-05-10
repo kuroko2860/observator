@@ -56,7 +56,7 @@ const cytoscapeConfig = {
   },
 };
 
-const TraceTree = ({ traceId, path, spanErrors, spanIds }) => {
+const TraceTree = ({ traceId, path, spanErrors, spanIds, spanMap }) => {
   const treeData = transformTreeData(path, spanErrors, spanIds);
   const [selectedSpanId, setSelectedSpanId] = useState(null);
   const handleNodeClick = (cy) => {
@@ -86,7 +86,12 @@ const TraceTree = ({ traceId, path, spanErrors, spanIds }) => {
       </Box>
       {selectedSpanId && (
         <Box className="w-1/3 pr-2">
-          <Typography variant="h6">Span Logs</Typography>
+          <Typography variant="h6">
+            Service: {spanMap[selectedSpanId].service}
+          </Typography>
+          <Typography variant="h6">
+            Operation: {spanMap[selectedSpanId].operation}
+          </Typography>
           <OperationLog traceId={traceId} spanId={selectedSpanId} />
         </Box>
       )}

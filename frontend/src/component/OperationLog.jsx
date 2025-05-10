@@ -87,7 +87,7 @@ const OperationLog = ({ traceId, spanId }) => {
 
   const formatLogEntry = (log) => {
     const timestamp = new Date(log.start_time).toISOString();
-    const service = log.service_name || "unknown";
+    // const service = log.service_name || "unknown";
     const message = log.message || "unknown";
     const caller = log.caller || "unknown";
 
@@ -99,9 +99,9 @@ const OperationLog = ({ traceId, spanId }) => {
         <Typography variant="body2" component="div">
           <strong>Time:</strong> {timestamp}
         </Typography>
-        <Typography variant="body2" component="div">
+        {/* <Typography variant="body2" component="div">
           <strong>Service:</strong> {service}
-        </Typography>
+        </Typography> */}
         <Typography variant="body2" component="div">
           <strong>Caller:</strong> {caller}
         </Typography>

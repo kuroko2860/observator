@@ -499,6 +499,7 @@ const TraceDetail = () => {
             path={processedData.path}
             spanErrors={trace.span_errors}
             spanIds={trace.span_ids}
+            spanMap={processedData.spanMap}
           />
         </Box>
       )}
