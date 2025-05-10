@@ -1,10 +1,7 @@
 package service
 
 import (
-	"context"
-
 	"github.com/qiniu/qmgo"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Service struct {
@@ -49,14 +46,5 @@ func NewService(db *qmgo.Database) *Service {
 	pathCollection = s.Collection("path")
 	spanCollection = s.Collection("span")
 	pathIdCollection = s.Collection("path_id")
-
-	pathIds = make(map[uint32]bool)
-	var pathIdArr []struct {
-		ID uint32 `json:"_id" bson:"_id"`
-	}
-	pathIdCollection.Find(context.Background(), bson.M{}).All(&pathIdArr)
-	for _, pathId := range pathIdArr {
-		pathIds[pathId.ID] = true
-	}
 	return s
 }
