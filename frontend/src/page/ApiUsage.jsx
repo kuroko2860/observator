@@ -84,10 +84,17 @@ function ApiUsage() {
       try {
         const params = {
           ...formData,
-          from: formData.from?.$d.getTime() || dayjs().startOf("day").valueOf(),
+          from:
+            formData.from?.$d.getTime() ||
+            dayjs()
+              .add(1, "minute")
+              .second(0)
+              .millisecond(0)
+              .subtract(1, "hour")
+              .valueOf(),
           to:
             formData.to?.$d.getTime() ||
-            dayjs().startOf("day").add(1, "day").valueOf(),
+            dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
         };
         await fetchData(params);
       } finally {

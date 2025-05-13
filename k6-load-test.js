@@ -3,8 +3,8 @@ import { check, sleep } from "k6";
 
 export let options = {
   vus: 10, //  virtual users
-  duration: "10m", // thời gian chạy
-  rps: 200, // target request/s
+  duration: "20m", // thời gian chạy
+  rps: 20, // target request/s
 };
 
 let data = JSON.stringify({

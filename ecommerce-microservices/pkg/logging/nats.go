@@ -195,7 +195,7 @@ func CreateLoggingMiddleware(serviceName string) echo.MiddlewareFunc {
 				TraceId:       traceID,
 				SpanId:        spanID,
 				UserAgent:     req.UserAgent(),
-				Duration:      duration.Milliseconds(),
+				Duration:      duration.Microseconds(),
 				StatusCode:    res.Status,
 				ResquestSize:  req.Header.Get("Content-Length"),
 				ResponseSize:  int64(res.Size),

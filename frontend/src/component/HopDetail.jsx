@@ -55,7 +55,7 @@ const HopDetails = ({ hopID, params, setShowHopDetail }) => {
   if (!data) return null;
 
   return (
-    <Box className="bg-white p-4 rounded-lg shadow-lg flex flex-wrap gap-2">
+    <Box className="bg-white p-4 rounded-lg shadow-lg flex flex-wrap justify-center items-center gap-2">
       <Grid2
         container
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-[49%]"
@@ -67,7 +67,6 @@ const HopDetails = ({ hopID, params, setShowHopDetail }) => {
           data.distribution
         )}
       </Grid2>
-
       <Grid2
         container
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-[49%]"

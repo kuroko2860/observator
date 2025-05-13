@@ -68,7 +68,7 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
       service_name: params.get("service_name") || "",
       uri_path: params.get("uri_path") || "",
       method: params.get("method") || "",
-      unit: "hour",
+      unit: "minute",
       from: null,
       to: null,
     },
@@ -114,14 +114,20 @@ const ApiStatistic = ({ defaultValue = ApiStatisticDefault }) => {
     async (data) => {
       setIsSearching(true);
       try {
-        const currentDate = dayjs();
         const requestData = {
           ...defaultValue,
           ...data,
-          from: data.from?.$d.getTime() || currentDate.startOf("day").valueOf(),
+          from:
+            data.from?.$d.getTime() ||
+            dayjs()
+              .add(1, "minute")
+              .second(0)
+              .millisecond(0)
+              .subtract(1, "hour")
+              .valueOf(),
           to:
             data.to?.$d.getTime() ||
-            currentDate.startOf("day").add(1, "day").valueOf(),
+            dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
         };
         await apiFetcher.fetchData(requestData);
       } finally {

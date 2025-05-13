@@ -35,9 +35,16 @@ import useFetchData from "../hook/useFetchData";
 import axios from "../config/axios";
 
 // Helper functions
-const getTimestamp = (date) =>
-  date?.$d.getTime() || dayjs().startOf("day").valueOf();
-const getEndOfDay = () => dayjs().startOf("day").add(1, "day").valueOf();
+const getFromTime = (date) =>
+  date?.$d.getTime() ||
+  dayjs()
+    .add(1, "minute")
+    .second(0)
+    .millisecond(0)
+    .subtract(1, "hour")
+    .valueOf();
+const getEndTime = () =>
+  dayjs().add(1, "minute").second(0).millisecond(0).valueOf();
 
 const formatDateKeys = (obj) => {
   return Object.keys(obj || {}).map((key) =>
@@ -152,7 +159,7 @@ const PathDetail = () => {
 
   const methods = useForm({
     defaultValues: {
-      unit: "hour",
+      unit: "minute",
       from: null,
       to: null,
     },
@@ -162,9 +169,14 @@ const PathDetail = () => {
     async function _fetchData() {
       console.log("fetching data");
       const params = {
-        from: dayjs().startOf("day").valueOf(),
-        to: dayjs().startOf("day").add(1, "day").valueOf(),
-        unit: "hour",
+        from: dayjs()
+          .add(1, "minute")
+          .second(0)
+          .millisecond(0)
+          .subtract(1, "hour")
+          .valueOf(),
+        to: dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
+        unit: "minute",
       };
 
       await fetchData(params);
@@ -179,8 +191,8 @@ const PathDetail = () => {
   const onSubmit = async (formData) => {
     const params = {
       ...formData,
-      from: getTimestamp(formData.from),
-      to: formData.to?.$d.getTime() || getEndOfDay(),
+      from: getFromTime(formData.from),
+      to: formData.to?.$d.getTime() || getEndTime(),
     };
 
     await fetchData(params);
@@ -198,8 +210,8 @@ const PathDetail = () => {
     setHopID(`${sourceId}_${targetId}_${path_id}`);
     const data = methods.getValues();
     setHopParams({
-      from: getTimestamp(data.from),
-      to: data.to?.$d.getTime() || getEndOfDay(),
+      from: getFromTime(data.from),
+      to: data.to?.$d.getTime() || getEndTime(),
       unit: methods.getValues("unit"),
     });
     setShowHopDetail(true);

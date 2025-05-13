@@ -82,11 +82,19 @@ const ApiLong = () => {
     async (formData) => {
       setIsSearching(true);
       try {
-        const startOfDay = dayjs().startOf("day");
         const params = {
           ...formData,
-          from: formData.from?.$d.getTime() || startOfDay.valueOf(),
-          to: formData.to?.$d.getTime() || startOfDay.add(1, "day").valueOf(),
+          from:
+            formData.from?.$d.getTime() ||
+            dayjs()
+              .add(1, "minute")
+              .second(0)
+              .millisecond(0)
+              .subtract(1, "hour")
+              .valueOf(),
+          to:
+            formData.to?.$d.getTime() ||
+            dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
         };
         await fetchData(params);
       } finally {

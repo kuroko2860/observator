@@ -33,24 +33,34 @@ function TopApi() {
   const topApiFetcher = useFetchData("/api-statistics/top-called");
 
   useEffect(() => {
-    const currentDate = dayjs();
     const requestData = {
       limit: DEFAULT_LIMIT,
-      from: currentDate.startOf("day").valueOf(),
-      to: currentDate.startOf("day").add(1, "day").valueOf(),
+      from: dayjs()
+        .add(1, "minute")
+        .second(0)
+        .millisecond(0)
+        .subtract(1, "hour")
+        .valueOf(),
+      to: dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
     };
     topApiFetcher.fetchData(requestData);
   }, []);
 
   const onSubmit = async (data) => {
-    const currentDate = dayjs();
     const requestData = {
       ...data,
       limit: DEFAULT_LIMIT,
-      from: data.from?.$d.getTime() || currentDate.startOf("day").valueOf(),
+      from:
+        data.from?.$d.getTime() ||
+        dayjs()
+          .add(1, "minute")
+          .second(0)
+          .millisecond(0)
+          .subtract(1, "hour")
+          .valueOf(),
       to:
         data.to?.$d.getTime() ||
-        currentDate.startOf("day").add(1, "day").valueOf(),
+        dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
     };
     topApiFetcher.fetchData(requestData);
   };

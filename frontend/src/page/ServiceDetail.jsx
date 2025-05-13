@@ -43,8 +43,13 @@ const ServiceDetail = () => {
   useEffect(() => {
     setPage(0);
     const params = {
-      from: dayjs().startOf("day").valueOf(),
-      to: dayjs().startOf("day").add(1, "day").valueOf(),
+      from: dayjs()
+        .add(1, "minute")
+        .second(0)
+        .millisecond(0)
+        .subtract(1, "hour")
+        .valueOf(),
+      to: dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
     };
     fetchData(params);
   }, []);
@@ -53,10 +58,17 @@ const ServiceDetail = () => {
   const handleSubmit = (formData) => {
     setPage(0);
     const params = {
-      from: formData.from?.$d.getTime() || dayjs().startOf("day").valueOf(),
+      from:
+        formData.from?.$d.getTime() ||
+        dayjs()
+          .add(1, "minute")
+          .second(0)
+          .millisecond(0)
+          .subtract(1, "hour")
+          .valueOf(),
       to:
         formData.to?.$d.getTime() ||
-        dayjs().startOf("day").add(1, "day").valueOf(),
+        dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
     };
     fetchData(params);
   };
@@ -133,7 +145,7 @@ const ServiceDetail = () => {
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{_id.uri_path}</TableCell>
                   <TableCell>{_id.method}</TableCell>
-                  <TableCell align="right">{count}</TableCell>
+                  <TableCell>{count}</TableCell>
                 </TableRow>
               ))}
           </TableBody>

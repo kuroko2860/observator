@@ -9,9 +9,14 @@ export const ApiStatisticDefault = {
   to: null,
 };
 export const DefaultFromTo = {
-  from: dayjs().startOf("day").valueOf(),
-  to: dayjs().startOf("day").add(1, "day").valueOf(),
+  to: dayjs().add(1, "minute").second(0).millisecond(0).valueOf(),
+  from: dayjs()
+    .add(1, "minute")
+    .second(0)
+    .millisecond(0)
+    .subtract(1, "hour")
+    .valueOf(),
 };
 export const DefaultUnit = {
-  unit: "hour",
+  unit: "minute",
 };

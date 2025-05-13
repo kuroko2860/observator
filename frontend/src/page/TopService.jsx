@@ -27,8 +27,17 @@ const TopService = () => {
 
   // Fetch data on initial load
   useEffect(() => {
-    const defaultStartTime = dayjs().startOf("day").valueOf();
-    const defaultEndTime = dayjs().startOf("day").add(1, "day").valueOf();
+    const defaultStartTime = dayjs()
+      .add(1, "minute")
+      .second(0)
+      .millisecond(0)
+      .subtract(1, "hour")
+      .valueOf();
+    const defaultEndTime = dayjs()
+      .add(1, "minute")
+      .second(0)
+      .millisecond(0)
+      .valueOf();
 
     fetchData({
       limit: 10,
@@ -38,8 +47,17 @@ const TopService = () => {
   }, []);
 
   const handleSubmit = async (formData) => {
-    const defaultStartTime = dayjs().startOf("day").valueOf();
-    const defaultEndTime = dayjs().startOf("day").add(1, "day").valueOf();
+    const defaultStartTime = dayjs()
+      .add(1, "minute")
+      .second(0)
+      .millisecond(0)
+      .subtract(1, "hour")
+      .valueOf();
+    const defaultEndTime = dayjs()
+      .add(1, "minute")
+      .second(0)
+      .millisecond(0)
+      .valueOf();
 
     fetchData({
       ...formData,
