@@ -1,0 +1,4 @@
+làm sao để KL đang từ 46 trang thành 60 trang, tương đương với phần nội dung chính là 50 trang, ncl chém gió thêm 14 trang, thêm hình ảnh, biểu đồ, luồng, giải thích nó văn vẻ lên.
+- Tài liệu tham khảo: +1
+- Cơ sở lý thuyết: +7
+- Phân tích thiết kế giải pháp: +6
