@@ -146,7 +146,7 @@ func (s *Service) GetDistributionApiUsageService(ctx context.Context, logs []*Lo
 	return res
 }
 
-func (s *Service) GetLongApiService(ctx context.Context, from, to, threshold string) ([]bson.M, error) {
+func (s *Service) GetLongApiService(ctx context.Context, from, to, threshold string) ([]bson.M, error) { // threshold in ms
 	fromInt, toInt := ParseFromToStringToInt(from, to)
 	thresholdNumber, _ := strconv.ParseInt(threshold, 10, 32)
 	matchStg := bson.D{
@@ -157,7 +157,7 @@ func (s *Service) GetLongApiService(ctx context.Context, from, to, threshold str
 					"$lte": toInt,
 				},
 				"duration": bson.M{
-					"$gte": thresholdNumber,
+					"$gte": thresholdNumber * 1000,
 				},
 			},
 		},
